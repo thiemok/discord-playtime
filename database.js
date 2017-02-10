@@ -62,6 +62,33 @@ DBConnector.prototype.updateUser = function(_id, _game, _servers, _interval) {
     });
 };
 
+//Returns Data on the given player
+DBConnector.prototype.getPlayer = function(_id) {
+	var self = this;
+	var pResult = new Promise(function(resolve, reject) {
+        self.runOperation(function(db, callback) {
+        	var collection = db.collection('users');
+
+        	collection.find({id: _id}).limit(1).toArray(function(err, users) {
+                if (err) {
+           	        console.log('Failed Database Query');
+           	        console.log(err);
+           	        reject('Error querying database. Please try again later');
+                }
+
+                var user;
+                for (var uid in users) {
+                    user = users[uid];
+                }
+                resolve(user);
+
+        		callback();
+        	});
+        });
+	});
+	return pResult;
+}
+
 //Finds the 5 players with the most total playtime for the given server
 DBConnector.prototype.getTopPlayers = function(_server) {
 	var self = this;
