@@ -9,10 +9,10 @@ function DBConnector (_url) {
 	});
 }
 
-DBConnector.prototype.updateUser = function(_id, _game, _servers, _interval) {    
-    console.log('writing data' + ' ' + _id + ' ' + _game + ' ' + _interval);
+DBConnector.prototype.updateUser = function(_id, _game, _servers, _interval) {
     this.runOperation(function(db, callback) {
         var collection = db.collection('users');
+        var timeIncrement = _interval / 60;
 
         collection.find({id: _id}).limit(1).toArray(function(err, user) {
             if (err) {
@@ -22,9 +22,9 @@ DBConnector.prototype.updateUser = function(_id, _game, _servers, _interval) {
             //Check for unknown user
             if (user.length == 0) {
             	games = new Object();
-            	games[_game] = _interval / 60;
+            	games[_game] = timeIncrement;
                 collection.insert(
-                	{id: _id, servers: _servers, games: games},
+                	{id: _id, servers: _servers, games: games, totalPlayed: timeIncrement},
                 	function(err, r) {
                 		if (err) {
                 			console.log('Failed Database Write');
@@ -36,15 +36,16 @@ DBConnector.prototype.updateUser = function(_id, _game, _servers, _interval) {
             } else {
             	for (var uid in user) {
             	    games = user[uid]['games'];
+            	    total = user[uid]['totalPlayed'] + timeIncrement;
             	    //Check if game hasn't been played
             	    if (games[_game] == null) {
-            	    	games[_game] = _interval / 60;
+            	    	games[_game] = timeIncrement;
             	    } else {
-            	    	games[_game] += _interval / 60; 
+            	    	games[_game] += timeIncrement; 
             	    }
             	    collection.updateOne(
             	    	{id: _id},
-            	    	{$set: {games: games, servers: _servers}},
+            	    	{$set: {games: games, servers: _servers, totalPlayed: total}},
             	    	function(err, r) {
                     		if (err) {
                     			console.log('Failed Database Write');
