@@ -4,6 +4,7 @@ const fs = require('fs');
 
 const DBConnector = require("./database.js");
 const Updater = require("./updater.js");
+const handleCommand = require("./commands.js");
 
 var data = fs.readFileSync('./config.json');
 var config;
@@ -18,20 +19,19 @@ function setup() {
     dbUpdater = new Updater(bot, db, config.updateInterval);
 }
 
+//Logging
 function logUserState() {
 	console.log('fetching data');
     dbUpdater.updateStats();
 	setTimeout(logUserState, updateInterval);
 }
 
-/*
 //Message Handling
 bot.on('message', msg => {
-  if (msg.content === 'ping') {
-    msg.reply('Pong!');
+  if (msg.content.startsWith(config.commandPrefix)) {
+    handleCommand(msg, bot, db, config);
   }
 });
-*/
 
 bot.on('ready', () => {
   console.log(`Logged in as ${bot.user.username}!`);

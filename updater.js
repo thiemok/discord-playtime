@@ -5,18 +5,18 @@ function Updater(_bot, _db, _updateInterval) {
 }
 
 Updater.prototype.updateStats = function() {
-    users = new Map();
-    presence = null;
-    servers = this.bot.guilds;
+    var users = new Map();
+    var presence = null;
+    var servers = this.bot.guilds;
     //Fetch users and games
 	servers.every((server, index, servers) => {
         //Check for server availability
         if (server.available) {
-        	members = server.members;
-        	serverId = server.id;
+        	var members = server.members;
+        	var serverId = server.id;
         	//Build data
         	members.every((member, id, server) => {
-                presence = member.presence; 
+                var presence = member.presence; 
                 if (presence.game != null && presence.status != 'idle') {
                     //Add user to collection if necessary
                     if (!users.has(member.id)) {
