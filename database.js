@@ -1,0 +1,74 @@
+var MongoClient = require('mongodb').MongoClient;
+var assert = require('assert');
+
+function DBConnector (_url) {
+	this.url = _url;
+	MongoClient.connect(this.url, function(err, db) {
+        assert.equal(null, err);
+        db.close();
+	});
+}
+
+DBConnector.prototype.updateUser = function(_id, _game, _servers, _interval) {    
+    console.log('writing data' + ' ' + _id + ' ' + _game + ' ' + _interval);
+    this.runOperation(function(db, callback) {
+        var collection = db.collection('users');
+
+        collection.find({id: _id}).limit(1).toArray(function(err, user) {
+            if (err) {
+            	console.log('Failed Database Query');
+            	console.log(err);
+            }
+            //Check for unknown user
+            if (user.length == 0) {
+            	games = new Object();
+            	games[_game] = _interval / 60;
+                collection.insert(
+                	{id: _id, servers: _servers, games: games},
+                	function(err, r) {
+                		if (err) {
+                			console.log('Failed Database Write');
+            	            console.log(err);
+                		}
+                		callback();
+                	}
+                );
+            } else {
+            	for (var uid in user) {
+            	    games = user[uid]['games'];
+            	    //Check if game hasn't been played
+            	    if (games[_game] == null) {
+            	    	games[_game] = _interval / 60;
+            	    } else {
+            	    	games[_game] += _interval / 60; 
+            	    }
+            	    collection.updateOne(
+            	    	{id: _id},
+            	    	{$set: {games: games, servers: _servers}},
+            	    	function(err, r) {
+                    		if (err) {
+                    			console.log('Failed Database Write');
+            	                console.log(err);
+                    		}
+                    		callback();
+                    	}
+                    );
+                }
+            }
+        });
+    });
+};
+
+DBConnector.prototype.runOperation = function(operation) {
+    MongoClient.connect(this.url, function(err, db) {
+        if (err) {
+        	console.log('Failed to Connect to Database');
+        	console.log(err);
+        }
+        operation(db, function() {
+        	db.close();
+        });
+    });
+};
+
+module.exports = DBConnector;
