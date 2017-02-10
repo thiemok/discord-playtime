@@ -17,7 +17,7 @@ Updater.prototype.updateStats = function() {
         	//Build data
         	members.every((member, id, server) => {
                 var presence = member.presence; 
-                if (presence.game != null && presence.status != 'idle') {
+                if (presence.game != null && presence.status != 'idle' && !member.user.bot) {
                     //Add user to collection if necessary
                     if (!users.has(member.id)) {
                     	users.set(member.id, {servers: new Array(), game: ''});
