@@ -17,6 +17,10 @@ function handleCommand(_cmd, _bot, _db, _cfg) {
 
     //Execute command
 	switch (command) {
+        case prefix + 'Help':
+            pResponse = help(_cfg);
+            break;
+
 		case prefix + 'Overview':
 		    pResponse = overview(_db, serverID, _bot);
 		    break;
@@ -51,7 +55,6 @@ function overview(_db, _id, _bot) {
                 time = buildTimeString(users[uid].totalPlayed);
                 topPlayers += members.get(users[uid].id).displayName + ': ' + time + '\n';
             }
-            console.log(topPlayers);
             topPlayersFullfilled = true;
 	    }).catch(function(err) {
             topPlayers = err + '\n';
@@ -111,7 +114,7 @@ function userStats(_name, _db, _serverID, _bot) {
         	    msg += '\n';
         	    msg += '**Total time played:** ' + buildTimeString(user.totalPlayed) + '\n';
         	    msg += '\n';
-        	    msg += '**Games;**\n';
+        	    msg += '**Games:**\n';
         	    for (game in user.games) {
                     if (hasOwnProperty.call(user.games, game)) {
                         var time = buildTimeString(user.games[game]);
@@ -123,6 +126,21 @@ function userStats(_name, _db, _serverID, _bot) {
         } else {
         	resolve('`Could not find user ' + _name + ' please use an existing username`');
         }
+	});
+	return pResult;
+}
+
+//Display help
+function help(_cfg) {
+	var pResult = new Promise(function(resolve, reject) {
+        var prefix = _cfg.commandPrefix;
+        var msg = '__**Help**__\n';
+        msg += '\n';
+        msg += '**Available commands:**\n';
+        msg += prefix + 'Overview: *Displays the 5 top players and games*\n';
+        msg += prefix + 'Stats <username>: *Displays detailed statistics about the given user*\n';
+
+        resolve(msg);
 	});
 	return pResult;
 }

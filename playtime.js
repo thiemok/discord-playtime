@@ -21,7 +21,6 @@ function setup() {
 
 //Logging
 function logUserState() {
-	console.log('fetching data');
     dbUpdater.updateStats();
 	setTimeout(logUserState, updateInterval);
 }
@@ -37,13 +36,13 @@ bot.on('ready', () => {
   console.log(`Logged in as ${bot.user.username}!`);
   var invitePromise = bot.generateInvite(requiredPermissions);
   invitePromise.then(function (link) {
+  	console.log('Add me to your server using this link:');
   	console.log(link);
   });
 });
 
 try {
     config = JSON.parse(data);
-    console.dir(config);
     
     setup();
 
