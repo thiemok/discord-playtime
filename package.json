@@ -1,0 +1,19 @@
+{
+  "name": "discord_playtime",
+  "version": "0.1.0",
+  "description": "Discord Bot that collects playtime statistics",
+  "main": "playtime.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "thiemok",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thiemok/discord_playtime"
+  },
+  "dependencies": {
+    "discord.js": "^11.0.0",
+    "mongodb": "^2.2.22"
+  }
+}
