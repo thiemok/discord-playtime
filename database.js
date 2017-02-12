@@ -183,6 +183,33 @@ DBConnector.prototype.getTopGames = function(_server) {
 	return pResult;
 }
 
+//Returns all Data for the given server
+DBConnector.prototype.getAllDataForServer = function(_server) {
+	var self = this;
+	var pResult = new Promise(function(resolve, reject) {
+        self.runOperation(function(db, callback) {
+        	var collection = db.collection('users');
+
+        	collection.find({servers: _server}).toArray(function(err, users) {
+        		if (err) {
+           	        console.log('Failed Database Query');
+           	        console.log(err);
+           	        reject('Error querying database. Please try again later');
+                }
+                //Strip sensitive ids
+                for (uid in users) {
+                    delete users[uid]._id;
+                    delete users[uid].servers;
+                }
+                resolve(users);
+
+                callback();
+        	});
+        });
+	});
+	return pResult;
+}
+
 DBConnector.prototype.runOperation = function(operation) {
     MongoClient.connect(this.url, function(err, db) {
         if (err) {

@@ -29,6 +29,10 @@ function handleCommand(_cmd, _bot, _db, _cfg) {
             pResponse = userStats(args , _db, serverID, _bot);
             break;
 
+        case prefix + 'ExportJSON':
+            pResponse = exportJSON(_cmd.member, serverID, _bot, _db);
+            break;
+
 		default:
             pResponse = unknownCmd(_cfg);
 	}
@@ -130,6 +134,32 @@ function userStats(_name, _db, _serverID, _bot) {
 	return pResult;
 }
 
+//Export DB as JSON
+function exportJSON(_sender, _server, _bot, _db) {
+	var pResult = new Promise(function(resolve, reject) {
+        var msg = '';
+        //Needs to be admin to export db
+        if (_sender.permissions.hasPermission('ADMINISTRATOR')) {
+            //Export data
+            var pData = _db.getAllDataForServer(_server);
+            pData.then(function(_data) {
+            	//Create buffer from string representation of data and send it
+                var pSend = _sender.sendFile(Buffer.from(JSON.stringify(_data)), 'export.JSON', 'Hii');
+                pSend.then(function(_msg) {
+                	resolve("psst I'm sending you a private message");
+                }).catch(function(err) {
+                	resolve('`' + err + '`');
+                });
+            }).catch(function(err) {
+            	resolve('`' + err + '`');
+            });
+        } else {
+        	resolve('`You have insufficient permissions, only Admins can export`');
+        }
+	});
+	return pResult;
+}
+
 //Display help
 function help(_cfg) {
 	var pResult = new Promise(function(resolve, reject) {
@@ -139,6 +169,7 @@ function help(_cfg) {
         msg += '**Available commands:**\n';
         msg += prefix + 'Overview: *Displays the 5 top players and games*\n';
         msg += prefix + 'Stats <username>: *Displays detailed statistics about the given user*\n';
+        msg += prefix + 'ExportJSON: *Exports collected data in JSON format*';
 
         resolve(msg);
 	});
