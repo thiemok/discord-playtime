@@ -76,11 +76,28 @@ DBConnector.prototype.getPlayer = function(_id) {
            	        reject('Error querying database. Please try again later');
                 }
 
-                var user;
-                for (var uid in users) {
-                    user = users[uid];
+                if (users.length != 0) {
+                    //Data available
+                    var user;
+                    for (var uid in users) {
+                        user = users[uid];
+                        //Sort games
+                        var sortedGames = new Array();
+                        for (game in user.games) {
+                        	if (hasOwnProperty.call(user.games, game)) {
+                                sortedGames.push({key: game, value: user.games[game]});
+                            }
+                        }
+                        sortedGames.sort(function(a, b) {
+                            return b.value - a.value;
+                        });
+                        user.games = sortedGames;
+                    }
+                    resolve(user);
+                } else {
+                	//No data available
+                	reject('I have never seen that user play, please try again later');
                 }
-                resolve(user);
 
         		callback();
         	});

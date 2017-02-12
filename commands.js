@@ -116,15 +116,15 @@ function userStats(_name, _db, _serverID, _bot) {
         	    msg += '\n';
         	    msg += '**Games:**\n';
         	    for (game in user.games) {
-                    if (hasOwnProperty.call(user.games, game)) {
-                        var time = buildTimeString(user.games[game]);
-                        msg += game + ': ' + time + '\n';
-                    }
+                    var time = buildTimeString(user.games[game].value);
+                    msg += user.games[game].key + ': ' + time + '\n';
                 }
                 resolve(msg);
+            }).catch(function(err) {
+            	resolve('`' + err + '`');
             });
         } else {
-        	resolve('`Could not find user ' + _name + ' please use an existing username`');
+        	resolve('`I could not find ' + _name + ' please use an existing username`');
         }
 	});
 	return pResult;
@@ -148,7 +148,7 @@ function help(_cfg) {
 //Report unknown command
 function unknownCmd(_cfg) {
 	var pResult = new Promise(function(resolve, reject) {
-		resolve('`Unknown command! Please use ' + _cfg.commandPrefix + 'Help to list available commands.`');
+		resolve('`I do not know that command! Please use ' + _cfg.commandPrefix + 'Help to list available commands.`');
 	});
 	return pResult;
 }
