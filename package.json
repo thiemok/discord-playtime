@@ -4,6 +4,7 @@
   "description": "Discord Bot that collects playtime statistics",
   "main": "playtime.js",
   "scripts": {
+    "start": "node playtime.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "thiemok",
