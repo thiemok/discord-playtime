@@ -50,6 +50,8 @@ function overview(_db, _id, _bot) {
         var topPlayersFullfilled = false;
         var topGames = '';
         var topGamesFullfilled = false;
+        var totalPlayed = '';
+        var totalPlayedFullfilled = false;
 
 	    //Build top players list
 	    var pTopPlayers = _db.getTopPlayers(_id);
@@ -77,9 +79,19 @@ function overview(_db, _id, _bot) {
         	topGamesFullfilled = true;
         });
 
+        //Build total time played
+        var pTotalPlayed = _db.getTotalTimePlayed(_id);
+        pTotalPlayed.then(function(total) {
+        	totalPlayed = buildTimeString(total) + '\n';
+        	totalPlayedFullfilled = true;
+        }).catch(function(err) {
+            totalPlayed = err + '\n';
+            totalPlayedFullfilled = true;
+        });
+
         //Wait for promises to resolve
         var wait = function() {
-    	    if (!topPlayersFullfilled || !topGamesFullfilled) {
+    	    if (!topPlayersFullfilled || !topGamesFullfilled || !totalPlayedFullfilled) {
                 setTimeout(wait, 1000);
     	    } else {
     		    //Build the final message
@@ -90,6 +102,8 @@ function overview(_db, _id, _bot) {
 	            msg += '\n';
 	            msg += '**Most Popular Games** \n';
 	            msg += topGames;
+	            msg += '\n';
+	            msg += '**Total time played:** ' + totalPlayed;
 	            resolve(msg);
     	    }
         }

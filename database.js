@@ -183,6 +183,37 @@ DBConnector.prototype.getTopGames = function(_server) {
 	return pResult;
 }
 
+//Returns sum of totalPlayed of all members of the given server
+DBConnector.prototype.getTotalTimePlayed = function(_server) {
+    var self = this;
+    var pResult = new Promise(function(resolve, reject) {
+    	self.runOperation(function(db, callback) {
+    		var collection = db.collection('users');
+    		var result = 0;
+
+    		collection.aggregate([
+    			                    { $match: { servers : _server}},
+    			                    { $group: { _id: null, total: { $sum: "$totalPlayed"}}}
+    			                ])
+    		          .toArray(function(err, docs) {
+    		          	if (err) {
+    		          		console.log('Failed Database Query');
+           	                console.log(err);
+           	                reject('Error querying database. Please try again later');
+    		          	} else {
+    		          		for (var doc in docs) {
+    		          			result = docs[doc].total;
+    		          		}
+    		          	}
+    		          	resolve(result);
+
+    		            callback();
+    		          });
+    	});
+    });
+    return pResult;
+}
+
 //Returns all Data for the given server
 DBConnector.prototype.getAllDataForServer = function(_server) {
 	var self = this;
