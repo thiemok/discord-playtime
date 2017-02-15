@@ -25,8 +25,12 @@ function handleCommand(_cmd, _bot, _db, _cfg) {
 		    pResponse = overview(_db, serverID, _bot);
 		    break;
 
-        case prefix + 'Stats':
-            pResponse = userStats(args , _db, serverID, _bot);
+        case prefix + 'UserStats':
+            pResponse = userStats(args, _db, serverID, _bot);
+            break;
+
+        case prefix + 'GameStats':
+            pResponse = gameStats(args, _db, serverID, _bot);
             break;
 
         case prefix + 'ExportJSON':
@@ -125,17 +129,18 @@ function userStats(_name, _db, _serverID, _bot) {
             //get user data
             var pUser = _db.getPlayer(member.id);
             pUser.then(function(_user) {
-        	    user = _user;
 
         	    //build message
         	    msg += '__**' + _name + '**__\n';
         	    msg += '\n';
-        	    msg += '**Total time played:** ' + buildTimeString(user.totalPlayed) + '\n';
+        	    msg += '**Total time played:** ' + buildTimeString(_user.totalPlayed) + '\n';
         	    msg += '\n';
         	    msg += '**Games:**\n';
-        	    for (game in user.games) {
-                    var time = buildTimeString(user.games[game].value);
-                    msg += user.games[game].key + ': ' + time + '\n';
+        	    
+        	    var time = '';
+        	    for (game in _user.games) {
+                    time = buildTimeString(_user.games[game].value);
+                    msg += _user.games[game].key + ': ' + time + '\n';
                 }
                 resolve(msg);
             }).catch(function(err) {
@@ -144,6 +149,37 @@ function userStats(_name, _db, _serverID, _bot) {
         } else {
         	resolve('`I could not find ' + _name + ' please use an existing username`');
         }
+	});
+	return pResult;
+}
+
+//Bulds stats for game
+function gameStats(_name, _db, _serverID, _bot) {
+	var pResult = new Promise(function(resolve, reject) {
+        var msg = '';
+        var pGame = _db.getGame(_serverID, _name);
+        pGame.then(function(_game) {
+        
+            //build message
+            msg += '__**' + _name + '**__\n';
+            msg += '\n';
+            msg += '**Total time played:** ' + buildTimeString(_game.total) + '\n';
+        	msg += '\n';
+        	msg += '**Player:**\n';
+
+        	var time = '';
+        	var displayName = '';
+        	var guildMembers = _bot.guilds.get(_serverID).members;
+        	for (item in _game.players) {
+                time = buildTimeString(_game.players[item].time) + '\n';
+                displayName = guildMembers.get(_game.players[item].id).displayName;
+                msg += displayName + ': ' + time;
+        	}
+        	resolve(msg);
+
+        }).catch(function(err) {
+        	resolve('`' + err + '`');
+        });
 	});
 	return pResult;
 }
@@ -182,7 +218,8 @@ function help(_cfg) {
         msg += '\n';
         msg += '**Available commands:**\n';
         msg += prefix + 'Overview: *Displays the 5 top players and games*\n';
-        msg += prefix + 'Stats <username>: *Displays detailed statistics about the given user*\n';
+        msg += prefix + 'UserStats <username>: *Displays detailed statistics about the given user*\n';
+        msg += prefix + 'GameStats <game>: *Displays detailed statistics about the given game*\n';
         msg += prefix + 'ExportJSON: *Exports collected data in JSON format*';
 
         resolve(msg);

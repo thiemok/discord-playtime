@@ -106,6 +106,44 @@ DBConnector.prototype.getPlayer = function(_id) {
 	return pResult;
 }
 
+DBConnector.prototype.getGame = function(_server, _game) {
+	var self = this;
+	var pResult = new Promise(function(resolve, reject) {
+        self.runOperation(function(db, callback) {
+        	var collection = db.collection('users');
+            //Find all users on the given server that played that game, extract useful data and sum playtime
+        	collection.aggregate([
+        		                    { $match: { servers: _server, ['games.' + _game]: {$exists: true}}},
+                                    { $group: {
+                                    	_id: null,
+                                    	total: { $sum: '$games.' + _game},
+                                        players: { $push: {id: '$id', time: '$games.' + _game}}}}
+        		                ])
+        	          .toArray(function(err, docs) {
+        		        if (docs.length != 0) {
+        		            if (err) {
+    		   	            	console.log('Failed Database Query');
+           	                    console.log(err);
+                                reject('Error querying database. Please try again later');
+              	            } else {
+              	            	//Sort players
+                                docs[0].players.sort(function(a, b) {
+                                    return b.time - a.time;
+                                });
+              	            	resolve(docs[0]);
+              	            }
+              	        } else {
+              	        	//No data available
+                	        reject('I have never seen anyone play that game, please try again later');
+              	        }
+
+              	        callback();
+        	});
+        });
+	});
+	return pResult;
+}
+
 //Finds the 5 players with the most total playtime for the given server
 DBConnector.prototype.getTopPlayers = function(_server) {
 	var self = this;
@@ -192,23 +230,23 @@ DBConnector.prototype.getTotalTimePlayed = function(_server) {
     		var result = 0;
 
     		collection.aggregate([
-    			                    { $match: { servers : _server}},
+    			                    { $match: { servers: _server}},
     			                    { $group: { _id: null, total: { $sum: "$totalPlayed"}}}
     			                ])
     		          .toArray(function(err, docs) {
-    		          	if (err) {
-    		          		console.log('Failed Database Query');
+    		            if (err) {
+    		   	        	console.log('Failed Database Query');
            	                console.log(err);
-           	                reject('Error querying database. Please try again later');
-    		          	} else {
-    		          		for (var doc in docs) {
-    		          			result = docs[doc].total;
-    		          		}
-    		          	}
-    		          	resolve(result);
-
-    		            callback();
-    		          });
+                            reject('Error querying database. Please try again later');
+              	        } else {
+              	        	for (var doc in docs) {
+              	        		result = docs[doc].total;
+              	        	}
+              	        }
+              	        resolve(result);
+        
+                        callback();
+            });
     	});
     });
     return pResult;
