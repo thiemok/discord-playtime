@@ -8,11 +8,23 @@ const DBConnector = require("./app/database.js");
 const Updater = require("./app/updater.js");
 const handleCommand = require("./app/commands.js");
 
-var data = fs.readFileSync('./config.json');
 var config;
 var db;
 var dbUpdater;
 var requiredPermissions = ['SEND_MESSAGES'];
+
+function getConfig() {
+    try {
+        let data = fs.readFileSync('./config.json');
+        config = JSON.parse(data);
+    } catch (err) {
+        //Reading config failed using ENV
+        config = {};
+        config['token'] = process.env.DISCORD_TOKEN;
+        config['dbUrl'] = process.env.MONGO_URL;
+        config['commandPrefix'] = process.env.COMMAND_PREFIX;
+    }
+}
 
 function setup() {
     db = new DBConnector(config.dbUrl);
@@ -37,7 +49,8 @@ bot.on('reconnecting', () => {
 });
 
 try {
-    config = JSON.parse(data);
+
+    getConfig();
 
     bot.prependOnceListener('ready', () => {
         setup();
