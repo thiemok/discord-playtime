@@ -4,9 +4,9 @@ const Discord = require("discord.js");
 const bot = new Discord.Client({'fetchAllMembers': true, 'disabledEvents': ['TYPING_START']});
 const fs = require('fs');
 
-const DBConnector = require("./database.js");
-const Updater = require("./updater.js");
-const handleCommand = require("./commands.js");
+const DBConnector = require("./app/database.js");
+const Updater = require("./app/updater.js");
+const handleCommand = require("./app/commands.js");
 
 var data = fs.readFileSync('./config.json');
 var config;
