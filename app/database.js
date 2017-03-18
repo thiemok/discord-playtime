@@ -43,7 +43,7 @@ class DBConnector {
                             _id: "$game",
                             total: { $sum: "$duration"},
                         }},
-                        { $sort: { total: 1}}
+                        { $sort: { total: -1}}
                     ]).toArray((err, docs) => {
                     if (err) {
                         console.log('Failed Database Query');
@@ -75,7 +75,7 @@ class DBConnector {
                 collection.aggregate([
                     { $match: { game: _game, servers: _server}},
                     { $group: { _id: "$uid", total: { $sum: "$duration"}}},
-                    { $sort: { total: 1}}
+                    { $sort: { total: -1}}
                 ]).toArray((err, docs) => {
                     if (err) {
                         console.log('Failed Database Query');
@@ -103,7 +103,7 @@ class DBConnector {
                 collection.aggregate([
                     { $match: { servers: _server}},
                     { $group: { _id: "$uid", total: { $sum: "$duration"}}},
-                    { $sort: {total: 1}},
+                    { $sort: {total: -1}},
                     { $limit: 5}
                 ]).toArray((err, docs) => {
                     if (err) {
@@ -129,7 +129,7 @@ class DBConnector {
                 collection.aggregate([
                     { $match: { servers: _server}},
                     { $group: { _id: "$game", total: { $sum: "$duration"}}},
-                    { $sort: {total: 1}},
+                    { $sort: {total: -1}},
                     { $limit: 5}
                 ]).toArray((err, docs) => {
                     if (err) {
