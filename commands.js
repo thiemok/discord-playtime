@@ -1,3 +1,5 @@
+const async = require('async');
+
 //Handle incomming commands
 function handleCommand(_cmd, _bot, _db, _cfg) {
 	var pResponse;
@@ -20,23 +22,23 @@ function handleCommand(_cmd, _bot, _db, _cfg) {
         case prefix + 'Help':
             pResponse = help(_cfg);
             break;
-
+            
 		case prefix + 'Overview':
 		    pResponse = overview(_db, serverID, _bot);
 		    break;
-
+        
         case prefix + 'UserStats':
             pResponse = userStats(args, _db, serverID, _bot);
             break;
-
+        
         case prefix + 'GameStats':
             pResponse = gameStats(args, _db, serverID, _bot);
             break;
-
+        
         case prefix + 'ExportJSON':
             pResponse = exportJSON(_cmd.member, serverID, _bot, _db);
             break;
-
+        
 		default:
             pResponse = unknownCmd(_cfg);
 	}
@@ -47,101 +49,85 @@ function handleCommand(_cmd, _bot, _db, _cfg) {
 }
 
 //Build overview
-function overview(_db, _id, _bot) {
-	var pResult = new Promise(function(resolve, reject) {
-	    var members = _bot.guilds.get(_id).members;
-	    var topPlayers = '';
-        var topPlayersFullfilled = false;
-        var topGames = '';
-        var topGamesFullfilled = false;
-        var totalPlayed = '';
-        var totalPlayedFullfilled = false;
+function overview(_db, _serverID, _bot) {
+    let pResult = new Promise((resolve, reject) => {
+        async.parallel([
+            async.asyncify(() => { return _db.getTopPlayers(_serverID)}),
+            async.asyncify(() => { return _db.getTopGames(_serverID)}),
+            async.asyncify(() => { return _db.getTotalTimePlayed(_serverID)})
+        ],
+        (err, results) => {
+            if(err) {
+                resolve('`' + err + '`');
+            } else {
+                let topPlayers = results[0];
+                let topGames = results[1];
+                let totalPlayed = results[2][0].total;
+                
+                //Build message parts
+                let topPlayersMsg = '';
+                let guildMembers = _bot.guilds.get(_serverID).members;
+                let displayName = '';
+                for (let player of topPlayers) {
+                    displayName = guildMembers.get(player._id).displayName;
+                    topPlayersMsg += displayName + ': ' + buildTimeString(player.total) + '\n';
+                }
 
-	    //Build top players list
-	    var pTopPlayers = _db.getTopPlayers(_id);
-	    pTopPlayers.then(function(users) {
-		    var time = '';
-            for (var uid in users) {
-                time = buildTimeString(users[uid].totalPlayed);
-                topPlayers += members.get(users[uid].id).displayName + ': ' + time + '\n';
+                let topGamesMsg = '';
+                for (let game of topGames) {
+                    topGamesMsg += game._id + ': ' + buildTimeString(game.total) + '\n';
+                }
+
+                let totalPlayedMsg = buildTimeString(totalPlayed) + '\n';
+
+                //Build the final message
+                let msg =  '__**Overview**__\n';
+                msg += '\n';
+                msg += '**Top Players**\n';
+                msg += topPlayersMsg;
+                msg += '\n';
+                msg += '**Most Popular Games** \n';
+                msg += topGamesMsg;
+                msg += '\n';
+                msg += '**Total time played:** ' + totalPlayedMsg;
+
+                resolve(msg);
             }
-            topPlayersFullfilled = true;
-	    }).catch(function(err) {
-            topPlayers = err + '\n';
-            topPlayersFullfilled = true;
-	    });
-
-        //Build top games list
-        var pTopGames = _db.getTopGames(_id);
-        pTopGames.then(function(games) {
-        	for (game in games) {
-        		topGames += games[game].key + ': ' + buildTimeString(games[game].value) + '\n';
-        	}
-            topGamesFullfilled = true;
-        }).catch(function(err) {
-        	topGames = err + '\n';
-        	topGamesFullfilled = true;
         });
-
-        //Build total time played
-        var pTotalPlayed = _db.getTotalTimePlayed(_id);
-        pTotalPlayed.then(function(total) {
-        	totalPlayed = buildTimeString(total) + '\n';
-        	totalPlayedFullfilled = true;
-        }).catch(function(err) {
-            totalPlayed = err + '\n';
-            totalPlayedFullfilled = true;
-        });
-
-        //Wait for promises to resolve
-        var wait = function() {
-    	    if (!topPlayersFullfilled || !topGamesFullfilled || !totalPlayedFullfilled) {
-                setTimeout(wait, 1000);
-    	    } else {
-    		    //Build the final message
-    		    var msg =  '__**Overview**__\n';
-	            msg += '\n';
-	            msg += '**Top Players**\n';
-	            msg += topPlayers;
-	            msg += '\n';
-	            msg += '**Most Popular Games** \n';
-	            msg += topGames;
-	            msg += '\n';
-	            msg += '**Total time played:** ' + totalPlayed;
-	            resolve(msg);
-    	    }
-        }
-        setTimeout(wait, 1000);
     });
-	return pResult
+    return pResult;
 }
 
 //Build stats for user
 function userStats(_name, _db, _serverID, _bot) {
 	var pResult = new Promise(function(resolve, reject) {
-        var msg = '';
-        var user;
+        let msg = '';
+        let user;
 
         //get user object
-        var member = _bot.guilds.get(_serverID).members.find('displayName', _name);
+        let member = _bot.guilds.get(_serverID).members.find('displayName', _name);
         if (member != null) {
 
             //get user data
-            var pUser = _db.getPlayer(member.id);
-            pUser.then(function(_user) {
+            let pUser = _db.getGamesforPlayer(member.id);
+            pUser.then(function(data) {
+
+                //Calculate total time played and build games message
+                let totalPlayed = 0;
+                let gamesMsg = '';
+                for (let game of data) {
+                    totalPlayed += game.total;
+                    gamesMsg += game._id + ': ' + buildTimeString(game.total) + '\n';
+                }
 
         	    //build message
         	    msg += '__**' + _name + '**__\n';
         	    msg += '\n';
-        	    msg += '**Total time played:** ' + buildTimeString(_user.totalPlayed) + '\n';
+        	    msg += '**Total time played:** ' + buildTimeString(totalPlayed) + '\n';
         	    msg += '\n';
         	    msg += '**Games:**\n';
-        	    
-        	    var time = '';
-        	    for (game in _user.games) {
-                    time = buildTimeString(_user.games[game].value);
-                    msg += _user.games[game].key + ': ' + time + '\n';
-                }
+        	    msg += gamesMsg;
+
                 resolve(msg);
             }).catch(function(err) {
             	resolve('`' + err + '`');
@@ -155,26 +141,30 @@ function userStats(_name, _db, _serverID, _bot) {
 
 //Bulds stats for game
 function gameStats(_name, _db, _serverID, _bot) {
-	var pResult = new Promise(function(resolve, reject) {
-        var msg = '';
-        var pGame = _db.getGame(_serverID, _name);
-        pGame.then(function(_game) {
+	let pResult = new Promise(function(resolve, reject) {
+        let msg = '';
+        let pGame = _db.getGame(_serverID, _name);
+        pGame.then(function(data) {
         
+            //Calculate total time played and build players message
+            let totalPlayed = 0;
+            let playersMsg = '';
+            let guildMembers = _bot.guilds.get(_serverID).members;
+            let displayName = '';
+            for (let player of data) {
+                totalPlayed += player.total;
+                displayName = guildMembers.get(player._id).displayName;
+                playersMsg += displayName + ': ' + buildTimeString(player.total) + '\n';
+            }
+
             //build message
             msg += '__**' + _name + '**__\n';
             msg += '\n';
-            msg += '**Total time played:** ' + buildTimeString(_game.total) + '\n';
+            msg += '**Total time played:** ' + buildTimeString(totalPlayed) + '\n';
         	msg += '\n';
-        	msg += '**Player:**\n';
+        	msg += '**Players:**\n';
+            msg += playersMsg;
 
-        	var time = '';
-        	var displayName = '';
-        	var guildMembers = _bot.guilds.get(_serverID).members;
-        	for (item in _game.players) {
-                time = buildTimeString(_game.players[item].time) + '\n';
-                displayName = guildMembers.get(_game.players[item].id).displayName;
-                msg += displayName + ': ' + time;
-        	}
         	resolve(msg);
 
         }).catch(function(err) {
@@ -194,7 +184,11 @@ function exportJSON(_sender, _server, _bot, _db) {
             var pData = _db.getAllDataForServer(_server);
             pData.then(function(_data) {
             	//Create buffer from string representation of data and send it
-                var pSend = _sender.sendFile(Buffer.from(JSON.stringify(_data)), 'export.JSON', 'Hii');
+                var pSend = _sender.sendFile(
+                	Buffer.from(JSON.stringify(_data, null, '\t')),
+                	'export.JSON',
+                	'Data export finished'
+                	);
                 pSend.then(function(_msg) {
                 	resolve("psst I'm sending you a private message");
                 }).catch(function(err) {
@@ -212,9 +206,9 @@ function exportJSON(_sender, _server, _bot, _db) {
 
 //Display help
 function help(_cfg) {
-	var pResult = new Promise(function(resolve, reject) {
-        var prefix = _cfg.commandPrefix;
-        var msg = '__**Help**__\n';
+	let pResult = new Promise(function(resolve, reject) {
+        let prefix = _cfg.commandPrefix;
+        let msg = '__**Help**__\n';
         msg += '\n';
         msg += '**Available commands:**\n';
         msg += prefix + 'Overview: *Displays the 5 top players and games*\n';
@@ -229,17 +223,24 @@ function help(_cfg) {
 
 //Report unknown command
 function unknownCmd(_cfg) {
-	var pResult = new Promise(function(resolve, reject) {
+	let pResult = new Promise(function(resolve, reject) {
 		resolve('`I do not know that command! Please use ' + _cfg.commandPrefix + 'Help to list available commands.`');
 	});
 	return pResult;
 }
 
-function buildTimeString(_minutes) {
-    var hours = Math.floor(_minutes / 60);
-    var minutes = _minutes % 60; 
+function buildTimeString(_duration) {
+    let totalMinutes = (_duration / 1000) / 60;
+    let dayPart = Math.floor(totalMinutes / (60 * 24));
+    let hourPart = Math.floor((totalMinutes / 60) % 24);
+    let minutePart = Math.floor(totalMinutes % 60);
+    
+    let timeString = '*';
+    timeString += (dayPart > 0) ? (dayPart + 'd ') : '';
+    timeString += (hourPart > 0) ? (hourPart + 'h ') : '';
+    timeString += minutePart + 'min*'; 
 
-	return '*' + hours + 'h ' + minutes + 'min*';
+	return timeString;
 }
 
 module.exports = handleCommand;

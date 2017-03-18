@@ -1,6 +1,5 @@
 {
 	"token": "discord_auth_token",
-	"updateInterval": 60,
 	"dbUrl": "mongodb://localhost/db",
 	"commandPrefix": "!gt"
 }

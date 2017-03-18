@@ -6,6 +6,7 @@ A discord bot intended to track playtime. Written for nodejs and based on discor
 ###Requirements
 * nodejs
 * discord.js
+* caolan/async
 * mongodb
 
 ###Setup
