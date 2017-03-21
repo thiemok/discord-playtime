@@ -1,5 +1,6 @@
 {
 	"token": "discord_auth_token",
 	"dbUrl": "mongodb://localhost/db",
-	"commandPrefix": "!gt"
+	"commandPrefix": "!gt",
+	"mashapeKey": "Your mashape api key for igdb access"
 }

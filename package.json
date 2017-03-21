@@ -16,6 +16,7 @@
   "dependencies": {
     "async": "^2.1.5",
     "discord.js": "^11.0.0",
+    "igdb-api-node": "^2.0.2",
     "mongodb": "^2.2.22"
   }
 }

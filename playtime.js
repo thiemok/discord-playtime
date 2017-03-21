@@ -17,6 +17,8 @@ function getConfig() {
     try {
         let data = fs.readFileSync('./config.json');
         config = JSON.parse(data);
+        //Set mashape api key for igdb game scraping
+        global.mashapeKey = config.mashapeKey;
     } catch (err) {
         //Reading config failed using ENV
         config = {};
@@ -81,7 +83,7 @@ catch (err) {
 
 function gracefulExit() {
     console.log('(⌒ー⌒)ﾉ');
-    //TODO: this needs to be synchronus to work
+    
     dbUpdater.stop(() => {
         bot.destroy();
         process.exit();

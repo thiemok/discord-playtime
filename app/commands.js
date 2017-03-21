@@ -1,12 +1,14 @@
 const async = require('async');
+const RichEmbed = require("discord.js").RichEmbed;
+const igdb = require('igdb-api-node');
 
 //Handle incomming commands
 function handleCommand(_cmd, _bot, _db, _cfg) {
-	var pResponse;
-	var prefix = _cfg.commandPrefix;
-	var serverID = _cmd.guild.id;
-    var command = '';
-    var args = '';
+	let pResponse;
+	let prefix = _cfg.commandPrefix;
+	let serverID = _cmd.guild.id;
+    let command = '';
+    let args = '';
 
     //Split command and possible arguments
     var i = _cmd.content.indexOf(' ');
@@ -44,7 +46,7 @@ function handleCommand(_cmd, _bot, _db, _cfg) {
 	}
 
 	pResponse.then(function(msg) {
-        _cmd.channel.sendMessage(msg);
+        _cmd.channel.send(msg);
 	});
 }
 
@@ -63,35 +65,47 @@ function overview(_db, _serverID, _bot) {
                 let topPlayers = results[0];
                 let topGames = results[1];
                 let totalPlayed = results[2][0].total;
-                
-                //Build message parts
-                let topPlayersMsg = '';
-                let guildMembers = _bot.guilds.get(_serverID).members;
-                let displayName = '';
-                for (let player of topPlayers) {
-                    displayName = guildMembers.get(player._id).displayName;
-                    topPlayersMsg += displayName + ': ' + buildTimeString(player.total) + '\n';
-                }
 
-                let topGamesMsg = '';
+                //Fetch game links
+                let gameTasks = new Array();
                 for (let game of topGames) {
-                    topGamesMsg += game._id + ': ' + buildTimeString(game.total) + '\n';
+                    gameTasks.push(async.asyncify(() => { return buildGameEntry(game)}));
                 }
+                async.parallel(gameTasks, (err, results) => {
+                    if (err) {
+                        resolve('`' + err + '`');
+                    } else {
 
-                let totalPlayedMsg = buildTimeString(totalPlayed) + '\n';
+                        //Build message parts
+                        let playersMsg = '';
+                        let guildMembers = _bot.guilds.get(_serverID).members;
+                        let displayName = '';
+                        for (let player of topPlayers) {
+                            displayName = guildMembers.get(player._id).displayName;
+                            playersMsg += displayName + ': ' + buildTimeString(player.total) + '\n';
+                        }
 
-                //Build the final message
-                let msg =  '__**Overview**__\n';
-                msg += '\n';
-                msg += '**Top Players**\n';
-                msg += topPlayersMsg;
-                msg += '\n';
-                msg += '**Most Popular Games** \n';
-                msg += topGamesMsg;
-                msg += '\n';
-                msg += '**Total time played:** ' + totalPlayedMsg;
+                        let gamesMsg = '';
+                        for (let gameEntry of results) {
+                            gamesMsg += gameEntry + '\n';
+                        }
 
-                resolve(msg);
+                        //Build general stats
+                        let generalStatsMsg = 'Total time played: ' + buildTimeString(totalPlayed);
+                        generalStatsMsg += '\n';
+                
+                        //Build the final embed
+                        let embed = initCustomRichEmbed(_serverID, _bot);
+                        embed.setAuthor('Overview');
+                        embed.setThumbnail(_bot.guilds.get(_serverID).iconURL);
+                        embed.setTitle('General statistics for this server');
+                        embed.setDescription(generalStatsMsg);
+                        embed.addField('Top players', playersMsg);
+                        embed.addField('Most popular games', gamesMsg);
+                
+                        resolve({ embed: embed});
+                    }
+                });
             }
         });
     });
@@ -101,8 +115,6 @@ function overview(_db, _serverID, _bot) {
 //Build stats for user
 function userStats(_name, _db, _serverID, _bot) {
 	var pResult = new Promise(function(resolve, reject) {
-        let msg = '';
-        let user;
 
         //get user object
         let member = _bot.guilds.get(_serverID).members.find('displayName', _name);
@@ -111,24 +123,46 @@ function userStats(_name, _db, _serverID, _bot) {
             //get user data
             let pUser = _db.getGamesforPlayer(member.id);
             pUser.then(function(data) {
+                
+                let embed = initCustomRichEmbed(_serverID, _bot);
 
-                //Calculate total time played and build games message
+                //Tasks that need to be run before the embed can be build
+                let tasks = new Array();
+
+                //Calculate total time played and build game titles
                 let totalPlayed = 0;
-                let gamesMsg = '';
                 for (let game of data) {
                     totalPlayed += game.total;
-                    gamesMsg += game._id + ': ' + buildTimeString(game.total) + '\n';
+                    tasks.push(async.asyncify(() => { return buildGameEntry(game)}));
                 }
 
-        	    //build message
-        	    msg += '__**' + _name + '**__\n';
-        	    msg += '\n';
-        	    msg += '**Total time played:** ' + buildTimeString(totalPlayed) + '\n';
-        	    msg += '\n';
-        	    msg += '**Games:**\n';
-        	    msg += gamesMsg;
+                async.parallel(tasks, (err, results) => {
+                    if(err) {
+                        resolve('`' + err + '`');
+                    } else {
 
-                resolve(msg);
+                        //Build games message
+                        let gamesMsg = '';
+                        for (let gameEntry of results) {
+                            gamesMsg += gameEntry + '\n';
+                        }
+                        
+                        //Build general stats
+                        let generalStatsMsg = 'Played a total of *' + data.length + '* different games';
+                        generalStatsMsg += '\n';
+                        generalStatsMsg += 'Total time played: ' + buildTimeString(totalPlayed);
+                        generalStatsMsg += '\n';
+
+                        //build message embed
+                        embed.setAuthor(_name);
+                        embed.setThumbnail(member.user.avatarURL);
+                        embed.setTitle('Overall statistics for this user:');
+                        embed.setDescription(generalStatsMsg);
+                        embed.addField('Games:', gamesMsg, true);
+
+                        resolve({embed: embed});
+                    }
+                });
             }).catch(function(err) {
             	resolve('`' + err + '`');
             });
@@ -139,13 +173,15 @@ function userStats(_name, _db, _serverID, _bot) {
 	return pResult;
 }
 
-//Bulds stats for game
+//Build stats for game
 function gameStats(_name, _db, _serverID, _bot) {
 	let pResult = new Promise(function(resolve, reject) {
         let msg = '';
         let pGame = _db.getGame(_serverID, _name);
         pGame.then(function(data) {
         
+            let embed = initCustomRichEmbed(_serverID, _bot);
+
             //Calculate total time played and build players message
             let totalPlayed = 0;
             let playersMsg = '';
@@ -157,16 +193,32 @@ function gameStats(_name, _db, _serverID, _bot) {
                 playersMsg += displayName + ': ' + buildTimeString(player.total) + '\n';
             }
 
-            //build message
-            msg += '__**' + _name + '**__\n';
-            msg += '\n';
-            msg += '**Total time played:** ' + buildTimeString(totalPlayed) + '\n';
-        	msg += '\n';
-        	msg += '**Players:**\n';
-            msg += playersMsg;
+            //build general stats
+            let generalStatsMsg = 'Played by a total of *' + data.length + '*  users';
+            generalStatsMsg += '\n';
+            generalStatsMsg += 'Total time played: ' + buildTimeString(totalPlayed);
+            generalStatsMsg += '\n';
 
-        	resolve(msg);
+            //build message embed
+            embed.setAuthor(_name);
+            embed.setTitle('Overall statistics for this game:');
+            embed.setDescription(generalStatsMsg);
+            embed.addField('Players:', playersMsg, true);
 
+            //Fetch cover and url
+            async.parallel([
+                async.asyncify(() => {return findGameURL(_name)}),
+                async.asyncify(() => {return findGameCover(_name)})
+            ],
+            (err, result) => {
+                if (err == null) {
+                    embed.setURL(result[0]);
+                    if (result[1] != null) {
+                        embed.setThumbnail(result[1]);
+                    }
+                }
+                resolve({ embed: embed});
+            });
         }).catch(function(err) {
         	resolve('`' + err + '`');
         });
@@ -229,6 +281,75 @@ function unknownCmd(_cfg) {
 	return pResult;
 }
 
+//Initialises RichEmbed with default options and customizations applied
+function initCustomRichEmbed(_serverID, _bot) {
+    let embed = new RichEmbed();
+    let server = _bot.guilds.get(_serverID);
+    let member = server.members.get(_bot.user.id);
+
+    //Set color to highest groups color
+    let color = member.highestRole.color;
+    embed.setColor(color);
+
+    //Set timestamp
+    embed.setTimestamp();
+
+    //Set footer
+    embed.setFooter(
+        'Powered by discord-playtime',
+        'https://assets-cdn.github.com/favicon.ico');
+
+    return embed;
+}
+
+//Builds a Markdown string representing the given game title
+function buildGameEntry(game) {
+    let pTitle = new Promise((resolve, reject) => {
+        let entry = '';
+        let formattedTitle = '';
+
+        findGameURL(game._id).then((result) => {
+            formattedTitle = `**[${game._id}](${result})**`;
+            entry = formattedTitle + ': ' + buildTimeString(game.total);
+            resolve(entry);
+        }).catch((err) => {
+            console.log(err);
+            formattedTitle = '**' + game._id + '**';
+            entry = formattedTitle + ': ' + buildTimeString(game.total);
+            resolve(entry);
+        });
+    });
+    return pTitle;
+}
+
+//Searches for the game on igdb an returns a promise to its url
+function findGameURL(game) {
+    let pURL = new Promise((resolve, reject) => {
+        igdb.games({ search: game, fields: 'url'}).then((response) => {
+            resolve(response.body[0].url);
+        }).catch((err) => {
+            reject(err);
+        });
+    });
+    return pURL;
+}
+
+//Searches for the games cover on igdb
+//Returns the covers url
+function findGameCover(game) {
+    let pCover = new Promise((resolve, reject) => {
+        igdb.games({ search: game, fields: 'cover'}).then((response) => {
+            resolve('https:' + response.body[0].cover.url);
+        }).catch((err) => {
+            console.log(err);
+            resolve(null);
+        });
+    });
+    return pCover;
+}
+
+//Builds a string representing the given duration accuratly to the minute
+//_duration is in miliseconds
 function buildTimeString(_duration) {
     let totalMinutes = (_duration / 1000) / 60;
     let dayPart = Math.floor(totalMinutes / (60 * 24));
