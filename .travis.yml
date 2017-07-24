@@ -1,15 +1,17 @@
 sudo: required
 
-language: node_js
-
 services:
-  - docker
+- docker
 
 script:
-  - docker build -t $TRAVIS_REPO_SLUG:$TRAVIS_COMMIT -t $TRAVIS_REPO_SLUG:latest .
+- docker build -t $TRAVIS_REPO_SLUG:$TRAVIS_COMMIT -t $TRAVIS_REPO_SLUG:latest .
 
 after_success:
-  - if [ "$TRAVIS_BRANCH" == "master" ]; then
-    docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
-    docker push USER/REPO;
-    fi
+- if [ "$TRAVIS_BRANCH" == "master" ]; then
+  docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
+  docker push USER/REPO;
+  fi
+
+notifications:
+  slack:
+    secure: KyHpTTgxrrYSrCq4QO8DNrfnw/Pt0vCT6yA8G3BrgAMsifywRzLl7Z/DCIV1YUDgXL6W+CVQJlz9jp3lzCB8KWHhNTyEnXbKkQK/2hCoWtRfXOFoGtga0mGhF5WhTaiZstgM0oznoqRvSaD1Ge5pL8y3qs18/7N+HDQYjyEVcX1WDSib/febC2FGYDFTvsv6EkDnK5VCFsoe1sTaKuhgsuuvGT4tMlhUd4MmLJJyU7s6IMBCAEEIqrzICJU1lx1Rcmhij97IL2z1+88z5YkLhfdYQJ3WcOwAlJcqX/s4QZqhahupzDt5DpYp+v+kaZrpOkj7JbPPTuU50ZnInYXWzzyx0Now50MvhBvQQ/4mg6HyZawmAOtEGVvuSoTN15qB+8Mtu+M1PoyM3nCaldFt46noKBLxpxuKP92zuXAD1P1OJ5+a8mGuz9lPdeB7l+eT38s6aLWVv9WPx4eOwJ22jXc1WXIZIuRgiGuZdO3/pHsKiDIUgzbopDKBL7IV+DtdCcdi5UMBgARYG0pwOmoShx4CcSDWS26PRLVLKjhjaEBxPWnbRfh9KBgDu9hZ+xgWQn0FiAi799RM3eelKkHOpd5TMf3K7TXSrhvB5ba3hTFiYw6Mq3PB9kWEPU/QOafmMpmaoGBttqijpxCzGM690vRqbvTFlLqXhUfBm/SnCCM=
