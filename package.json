@@ -11,7 +11,7 @@
 		"postinstall": "[ \"$NODE_ENV\" == production ] && exit 0; npm run flow-typed"
   },
   "author": "thiemok",
-  "license": "MIT",
+  "license": "GPL-3.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/thiemok/discord_playtime"
