@@ -1,0 +1,17 @@
+[ignore]
+<PROJECT_ROOT>/node_modules/*
+
+[include]
+
+[libs]
+
+[options]
+esproposal.class_static_fields=enable
+esproposal.class_instance_fields=enable
+esproposal.export_star_as=enable
+module.system.node.resolve_dirname=node_modules
+module.system.node.resolve_dirname=lib
+suppress_comment=\\(.\\|\n\\)*\\$FlowFixMe
+suppress_comment=\\(.\\|\n\\)*\\$FlowIssue
+
+[lints]

@@ -1,8 +1,15 @@
 # Git
-.git*
+.git
+.gitignore
 
-#node
+# node
 node_modules
-Dockerfile
+.flowconfig
+.eslint*
+
+# Misc
 README.md
 LICENSE.md
+Makefile
+.editorconfig
+.travis.yml

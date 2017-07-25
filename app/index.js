@@ -1,12 +1,10 @@
-'use strict';
-
 const Discord = require("discord.js");
 const bot = new Discord.Client({'fetchAllMembers': true, 'disabledEvents': ['TYPING_START']});
 const fs = require('fs');
 
-const DBConnector = require("./app/database.js");
-const Updater = require("./app/updater.js");
-const handleCommand = require("./app/commands.js");
+const DBConnector = require("./database.js");
+const Updater = require("./updater.js");
+const handleCommand = require("./commands.js");
 
 var config;
 var db;
@@ -65,7 +63,7 @@ try {
 
     bot.on('ready', () => {
         console.log(`Logged in as ${bot.user.username}!`);
-    
+
         //Set presence
         let presence = bot.user.presence;
         presence.game = { name: "Big Brother", url: null};
@@ -83,7 +81,7 @@ catch (err) {
 
 function gracefulExit() {
     console.log('(⌒ー⌒)ﾉ');
-    
+
     dbUpdater.stop(() => {
         bot.destroy();
         process.exit();
