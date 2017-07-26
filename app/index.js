@@ -1,8 +1,8 @@
 import Discord from 'discord.js';
 
-import DBConnector from './database.js';
-import Updater from './updater.js';
-import handleCommand from './commands.js';
+import DBConnector from './database';
+import Updater from './updater';
+import handleCommand from './commands';
 
 const bot = new Discord.Client(
 	{

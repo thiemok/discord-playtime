@@ -1,0 +1,41 @@
+import igdb from 'igdb-api-node';
+
+/**
+ * Searches igdb for the given game and returns its url
+ * @param  {String} game The game to search for
+ * @return {Promise}     Promise resolving when the search has finished, and returning the url of the found game
+ */
+const findGameURL = (game) => {
+	const pURL = new Promise((resolve, reject) => {
+		igdb.games({ search: game, fields: 'url' })
+		.then((response) => {
+			resolve(response.body[0].url);
+		}).catch((err) => {
+			reject(err);
+		});
+	});
+	return pURL;
+};
+
+/**
+ * Searches igdb for the given games cover
+ * @param  {String} game The game to search for
+ * @return {Promise}     Promise resolving when the search has finished, and returning the url of the found games cover
+ */
+const findGameCover = (game) => {
+	const pCover = new Promise((resolve, reject) => {
+		igdb.games({ search: game, fields: 'cover' })
+		.then((response) => {
+			resolve('https:' + response.body[0].cover.url);
+		}).catch((err) => {
+			console.log(err);
+			resolve(null);
+		});
+	});
+	return pCover;
+};
+
+export default {
+	findGameURL,
+	findGameCover,
+};
