@@ -46,7 +46,7 @@ function handleCommand(_cmd, _bot, _db, _cfg) {
 			pResponse = unknownCmd(_cfg);
 	}
 
-	pResponse.then(function(msg) {
+	pResponse.then((msg) => {
 		_cmd.channel.send(msg);
 	});
 }
