@@ -100,6 +100,8 @@ module.exports = {
 				"tools.*",
 				"constants.*",
 				"app.*",
+				"util.*",
+				"commands"
 			]
 		}],
 		"import/extensions": 0,
