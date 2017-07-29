@@ -61,7 +61,7 @@ const userStats = (argv, context) => {
 					}
 				});
 			}).catch((err) => {
-				resolve('`' + err + '`');
+				resolve('`Error: ' + err + '`');
 			});
 		} else {
 			resolve('`I could not find ' + name + ' please use an existing username`');

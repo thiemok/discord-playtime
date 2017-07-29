@@ -68,16 +68,16 @@ describe('Command overview', () => {
 
 	test('resolves to error message on db error', () => {
 
-		db.getTopGames.mockReturnValue(erroringPromise);
-		db.getTopPlayers.mockReturnValue(erroringPromise);
-		db.getTotalTimePlayed.mockReturnValue(erroringPromise);
+		db.getTopGames.mockImplementationOnce(() => erroringPromise);
+		db.getTopPlayers.mockImplementationOnce(() => erroringPromise);
+		db.getTotalTimePlayed.mockImplementationOnce(() => erroringPromise);
 
 		return expect(overview([], context)).resolves.toBe('`Error: Fail`');
 	});
 
 	test('resolves to error message on buildRichGameString error', () => {
 
-		buildRichGameString.mockReturnValue(erroringPromise);
+		buildRichGameString.mockImplementationOnce(() => erroringPromise);
 
 		return expect(overview([], context)).resolves.toBe('`Error: Fail`');
 	});
