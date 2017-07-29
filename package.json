@@ -31,6 +31,7 @@
     "flow-runtime": "^0.13.0",
     "flow-typed": "^2.1.5",
     "jest": "^20.0.4"
+    "mockdate": "^2.0.1"
   },
   "dependencies": {
     "async": "^2.1.5",
