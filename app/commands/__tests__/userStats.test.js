@@ -72,15 +72,15 @@ describe('Command userStats', () => {
 
 	test('resolves to error message on db error', () => {
 
-		db.getGamesforPlayer.mockReturnValue(erroringPromise);
+		db.getGamesforPlayer.mockImplementationOnce(() => erroringPromise);
 
-		return expect(userStats([members.get(1).displayName], context)).resolves.toBe('`Fail`');
+		return expect(userStats([members.get(1).displayName], context)).resolves.toBe('`Error: Fail`');
 	});
 
 	test('resolves to error message on buildRichGameString error', () => {
 
-		buildRichGameString.mockReturnValue(erroringPromise);
+		buildRichGameString.mockImplementationOnce(() => erroringPromise);
 
-		return expect(userStats([members.get(1).displayName], context)).resolves.toBe('`Fail`');
+		return expect(userStats([members.get(1).displayName], context)).resolves.toBe('`Error: Fail`');
 	});
 });
