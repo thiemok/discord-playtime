@@ -57,7 +57,7 @@ const gameStats = (argv, context) => {
 				resolve({ embed: embed });
 			});
 		}).catch((err) => {
-			resolve('`' + err + '`');
+			resolve('`Error: ' + err + '`');
 		});
 	});
 	return pResult;
