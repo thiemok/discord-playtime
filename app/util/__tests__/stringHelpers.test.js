@@ -17,7 +17,7 @@ describe('StringHelpers', () => {
 			const expectedGameString = '**[' + testGame._id + ']('
 			+ testGameURL + ')**: '
 			+ stringHelpers.buildTimeString(testGame.total);
-			findGameURL.mockImplementationOnce(game => new Promise((res, rej) => res(testGameURL)));
+			findGameURL.mockImplementationOnce(game => Promise.resolve(testGameURL));
 
 			expect(stringHelpers.buildRichGameString(testGame)).resolves.toBe(expectedGameString);
 		});
@@ -26,7 +26,7 @@ describe('StringHelpers', () => {
 			const testGame = { _id: 'TestGame', total: 90010000 };
 			const expectedGameString = '**' + testGame._id + '**: '
 			+ stringHelpers.buildTimeString(testGame.total);
-			findGameURL.mockImplementationOnce(game => new Promise((res, rej) => rej()));
+			findGameURL.mockImplementationOnce(game => Promise.reject());
 
 			expect(stringHelpers.buildRichGameString(testGame)).resolves.toBe(expectedGameString);
 		});

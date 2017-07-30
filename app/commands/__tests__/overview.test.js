@@ -33,7 +33,7 @@ const context = {
 	serverID,
 	client,
 };
-const erroringPromise = new Promise((resolve, reject) => reject('Fail'));
+const erroringPromise = Promise.reject('Fail');
 
 beforeAll(() => {
 	MockDate.set(1434319925275);
