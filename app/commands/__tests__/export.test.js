@@ -24,7 +24,7 @@ const context = {
 	client,
 	member,
 };
-const erroringPromise = new Promise((resolve, reject) => reject('Fail'));
+const erroringPromise = Promise.reject('Fail');
 
 beforeEach(() => {
 	member.sendFile.mockClear();

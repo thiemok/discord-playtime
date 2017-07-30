@@ -12,12 +12,12 @@ jest.mock('../misc');
 jest.mock('../overview');
 jest.mock('../userStats');
 
-exportJSON.mockImplementation(() => new Promise((res, rej) => res()));
-gameStats.mockImplementation(() => new Promise((res, rej) => res()));
-help.mockImplementation(() => new Promise((res, rej) => res()));
-unknownCmd.mockImplementation(() => new Promise((res, rej) => res()));
-overview.mockImplementation(() => new Promise((res, rej) => res()));
-userStats.mockImplementation(() => new Promise((res, rej) => res()));
+exportJSON.mockImplementation(() => Promise.resolve());
+gameStats.mockImplementation(() => Promise.resolve());
+help.mockImplementation(() => Promise.resolve());
+unknownCmd.mockImplementation(() => Promise.resolve());
+overview.mockImplementation(() => Promise.resolve());
+userStats.mockImplementation(() => Promise.resolve());
 
 const testMessage = {
 	guild: {
@@ -68,7 +68,7 @@ describe('Command matching', () => {
 
 		testMessage.content += 'GameStats testGame';
 		handleCommand(testMessage, {}, {}, testCfg);
-		
+
 		expect(gameStats).lastCalledWith(
 			['testGame'],
 			{
@@ -108,7 +108,7 @@ describe('Command matching', () => {
 	test('logs errors from executed commands', () => {
 
 		testMessage.content += 'UnknownMockCommand';
-		unknownCmd.mockImplementationOnce(() => new Promise((res, rej) => rej('Expected fail')));
+		unknownCmd.mockImplementationOnce(() => Promise.reject('Expected fail'));
 		handleCommand(testMessage, {}, {}, testCfg);
 
 		expect(unknownCmd).toBeCalled();

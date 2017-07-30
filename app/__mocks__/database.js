@@ -7,12 +7,12 @@ const __setMockData = (data) => {
 	mockData = Object.assign({}, data);
 };
 
-db.getTopPlayers = jest.fn(id => new Promise((res, rej) => res(mockData.topPlayers)));
-db.getTopGames = jest.fn(id => new Promise((res, rej) => res(mockData.topGames)));
-db.getTotalTimePlayed = jest.fn(id => new Promise((res, rej) => res(mockData.totalTimeplayed)));
-db.getGamesforPlayer = jest.fn(id => new Promise((res, rej) => res(mockData.gamesForPlayer)));
-db.getGame = jest.fn((id, name) => new Promise((res, rej) => res(mockData.game)));
-db.getAllDataForServer = jest.fn((id, name) => new Promise((res, rej) => res(mockData)));
+db.getTopPlayers = jest.fn(id => Promise.resolve(mockData.topPlayers));
+db.getTopGames = jest.fn(id => Promise.resolve(mockData.topGames));
+db.getTotalTimePlayed = jest.fn(id => Promise.resolve(mockData.totalTimeplayed));
+db.getGamesforPlayer = jest.fn(id => Promise.resolve(mockData.gamesForPlayer));
+db.getGame = jest.fn((id, name) => Promise.resolve(mockData.game));
+db.getAllDataForServer = jest.fn((id, name) => Promise.resolve(mockData));
 
 db.__setMockData = __setMockData;
 
