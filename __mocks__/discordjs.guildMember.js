@@ -9,6 +9,10 @@ const mockGuildMemberFactory = (id) => {
 		highestRole: {
 			color: 0,
 		},
+		permissions: {
+			hasPermission: jest.fn(() => true),
+		},
+		sendFile: jest.fn(() => new Promise((res, rej) => res())),
 	};
 };
 

@@ -41,7 +41,7 @@ function handleCommand(msg, client, db, cfg) {
 	command(args.slice(1), context)
 	.then((payload) => {
 		msg.channel.send(payload);
-	});
+	}).catch(error => console.log(error));
 }
 
 export default handleCommand;
