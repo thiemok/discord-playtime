@@ -36,3 +36,6 @@ flow-typed
 
 # Optional REPL history
 .node_repl_history
+
+# Ignore config file
+config.json
