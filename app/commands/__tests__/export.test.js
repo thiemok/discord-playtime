@@ -38,7 +38,7 @@ describe('Command exportJSON', () => {
 		.then((res) => {
 			expect(res).toBe(expectedResolution);
 			expect(member.sendFile).lastCalledWith(
-				Buffer.from(JSON.stringify(mockData, null, '\t')),
+				Buffer.from(JSON.stringify(db.__getMockData(), null, '\t')),
 				'export.JSON',
 				'Data export finished'
 			);
