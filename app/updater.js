@@ -1,18 +1,18 @@
 import parallel from 'async/parallel';
 
 class Session {
-	constructor(_game, _member, _servers) {
-		this.game = _game;
+	constructor(game, member, servers) {
+		this.game = game;
 		this.startDate = new Date();
-		this.member = _member;
-		this.servers = _servers;
+		this.member = member;
+		this.servers = servers;
 	}
 }
 
 class Updater {
-	constructor(_bot, _db) {
-		this.db = _db;
-		this.bot = _bot;
+	constructor(client, db) {
+		this.db = db;
+		this.client = client;
 		this.activeSessions = new Map();
 
 		// Handle updated presences
@@ -80,7 +80,7 @@ class Updater {
 		// Check if member needs tracking
 		if (this.needsTracking(member)) {
 			const servers = [];
-			this.bot.guilds.forEach((sid, server) => {
+			this.client.guilds.forEach((server, sid) => {
 				if (server.available) {
 					if (server.members.has(member.id)) {
 						servers.push(sid);
@@ -93,7 +93,7 @@ class Updater {
 	}
 
 	// Closes, if needed or forced, the session of the given member and writes it to the db
-	closeSession(member, callback, force = false) {
+	closeSession(member, callback = () => {}, force = false) {
 		// Check if is forced or needs closing
 		if (force || this.needsClosing(member)) {
 			// Write session to db
@@ -106,20 +106,20 @@ class Updater {
 	// Start tracking users presences
 	start() {
 		// Start Sessions for already connected and playing users
-		this.bot.guilds.forEach((guild) => {
+		this.client.guilds.forEach((guild) => {
 			guild.members.forEach((member) => {
 				this.openSession(member);
 			});
 		});
 
 		// Act on Users changeing state
-		this.bot.on('presenceUpdate', this.presenceUpdated);
+		this.client.on('presenceUpdate', this.presenceUpdated);
 	}
 
 	// Stop tracking user presences
 	stop(_callback) {
 		// Remove event listener
-		this.bot.removeListener('presenceUpdated', this.presenceUpdated);
+		this.client.removeListener('presenceUpdated', this.presenceUpdated);
 		// Close all open Sessions
 		const tasks = [];
 		this.activeSessions.forEach((session) => {

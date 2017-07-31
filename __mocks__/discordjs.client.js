@@ -9,7 +9,15 @@ const mockClientFactory = jest.fn((members) => {
 					iconURL: 'https://testurl.com',
 				};
 			},
+			forEach: (callback) => {
+				callback({
+					members,
+					available: true,
+				}, 'MockServer');
+			},
 		},
+		on: jest.fn(() => {}),
+		removeListener: jest.fn(() => {}),
 		user: {
 			id: 0,
 		},
