@@ -15,6 +15,7 @@ before_install:
   - sudo apt-get -y install docker-ce
 
 script:
+  - yarn run lint
   - yarn run test
 
 jobs:
