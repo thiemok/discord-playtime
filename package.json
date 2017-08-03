@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "node_modules/jest/bin/jest.js",
+    "test-watch": "node_modules/jest/bin/jest.js --watchALL",
     "start": "node index.js",
+    "lint": "node_modules/eslint/bin/eslint.js .",
     "flow": "flow",
     "flow-typed": "rimraf flow-typed/npm && flow-typed install --overwrite || true",
     "postinstall": "[ \"$NODE_ENV\" == production ] && exit 0; npm run flow-typed"
