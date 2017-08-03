@@ -20,16 +20,16 @@ const buildRichGameString = (game) => {
 		let formattedTitle = '';
 
 		findGameURL(game._id)
-		.then((result) => {
-			formattedTitle = `**[${game._id}](${result})**`;
-			entry = formattedTitle + ': ' + buildTimeString(game.total);
-			resolve(entry);
-		}).catch((err) => {
-			console.log(err);
-			formattedTitle = '**' + game._id + '**';
-			entry = formattedTitle + ': ' + buildTimeString(game.total);
-			resolve(entry);
-		});
+			.then((result) => {
+				formattedTitle = `**[${game._id}](${result})**`;
+				entry = formattedTitle + ': ' + buildTimeString(game.total);
+				resolve(entry);
+			}).catch((err) => {
+				console.log(err);
+				formattedTitle = '**' + game._id + '**';
+				entry = formattedTitle + ': ' + buildTimeString(game.total);
+				resolve(entry);
+			});
 	});
 	return pTitle;
 };

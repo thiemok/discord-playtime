@@ -3,10 +3,9 @@
 	"plugins": [
 		"add-module-exports",
 		"transform-runtime",
-		["babel-plugin-module-alias", [
-			{ "src": "./app/commands", "expose": "commands" },
-			{ "src": "./app/util", "expose": "util" }
-		],
+		["module-resolver", {
+			"root": ["./app"]
+		},
 		"flow-runtime", {
 			"assert": true,
 			"annotate": true

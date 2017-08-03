@@ -22,12 +22,12 @@ afterAll(() => {
 describe('EmbedHelpers', () => {
 	test('initCustomRichEmbed works correctly', () => {
 		const expectedEmbed = new RichEmbed()
-		.setColor(members.get(0).highestRole.color)
-		.setTimestamp()
-		.setFooter(
-			'Powered by discord-playtime',
-			'https://assets-cdn.github.com/favicon.ico'
-		);
+			.setColor(members.get(0).highestRole.color)
+			.setTimestamp()
+			.setFooter(
+				'Powered by discord-playtime',
+				'https://assets-cdn.github.com/favicon.ico'
+			);
 
 		expect(embedHelpers.initCustomRichEmbed(serverID, client)).toEqual(expectedEmbed);
 	});

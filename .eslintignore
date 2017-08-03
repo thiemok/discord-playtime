@@ -4,3 +4,6 @@ flow-typed/npm/*
 
 # test coverage
 coverage
+
+# build
+build

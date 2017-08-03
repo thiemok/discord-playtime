@@ -47,21 +47,21 @@ describe('Command overview', () => {
 	test('is building correctly', () => {
 
 		const expectedEmbed = initCustomRichEmbed(serverID, client)
-		.setAuthor('Overview')
-		.setThumbnail(client.guilds.get('test').iconURL)
-		.setTitle('General statistics for this server')
-		.setDescription('Total time played: ' + buildTimeString(9001) + '\n')
-		.addField(
-			'Top players',
-			members.get(1).displayName + ': ' + buildTimeString(5) + '\n'
+			.setAuthor('Overview')
+			.setThumbnail(client.guilds.get('test').iconURL)
+			.setTitle('General statistics for this server')
+			.setDescription('Total time played: ' + buildTimeString(9001) + '\n')
+			.addField(
+				'Top players',
+				members.get(1).displayName + ': ' + buildTimeString(5) + '\n'
 			+ members.get(2).displayName + ': ' + buildTimeString(25) + '\n'
 			+ members.get(3).displayName + ': ' + buildTimeString(20) + '\n'
-		)
-		.addField(
-			'Most popular games',
-			buildRichGameString(mockTopGames[0]) + '\n'
+			)
+			.addField(
+				'Most popular games',
+				buildRichGameString(mockTopGames[0]) + '\n'
 			+ buildRichGameString(mockTopGames[1]) + '\n'
-		);
+			);
 
 		return expect(overview([], context)).resolves.toEqual({ embed: expectedEmbed });
 	});

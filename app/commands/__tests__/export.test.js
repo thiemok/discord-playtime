@@ -35,21 +35,21 @@ describe('Command exportJSON', () => {
 		const expectedResolution = "psst I'm sending you a private message";
 
 		exportJSON([], context)
-		.then((res) => {
-			expect(res).toBe(expectedResolution);
-			expect(member.sendFile).lastCalledWith(
-				Buffer.from(JSON.stringify(db.__getMockData(), null, '\t')),
-				'export.JSON',
-				'Data export finished'
-			);
-			done();
-		}).catch((error) => {
+			.then((res) => {
+				expect(res).toBe(expectedResolution);
+				expect(member.sendFile).lastCalledWith(
+					Buffer.from(JSON.stringify(db.__getMockData(), null, '\t')),
+					'export.JSON',
+					'Data export finished'
+				);
+				done();
+			}).catch((error) => {
 			// Fail by default here
 			/* eslint-disable no-undef */
-			fail('Got error when there should not have been one:\n' + error);
-			/* eslint-enable no-undef */
-			done();
-		});
+				fail('Got error when there should not have been one:\n' + error);
+				/* eslint-enable no-undef */
+				done();
+			});
 	});
 
 	test('resolves to insufficient permissions message for non administrators and does not send a file', (done) => {
@@ -57,17 +57,17 @@ describe('Command exportJSON', () => {
 		member.permissions.hasPermission.mockImplementationOnce(() => false);
 
 		exportJSON([], context)
-		.then((res) => {
-			expect(res).toBe(expectedResolution);
-			expect(member.sendFile).not.toBeCalled();
-			done();
-		}).catch((error) => {
+			.then((res) => {
+				expect(res).toBe(expectedResolution);
+				expect(member.sendFile).not.toBeCalled();
+				done();
+			}).catch((error) => {
 			// Fail by default here
 			/* eslint-disable no-undef */
-			fail('Got error when there should not have been one:\n' + error);
-			/* eslint-enable no-undef */
-			done();
-		});
+				fail('Got error when there should not have been one:\n' + error);
+				/* eslint-enable no-undef */
+				done();
+			});
 	});
 
 	test('resolves to error msg on sendFile error', () => {

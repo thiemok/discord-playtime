@@ -15,50 +15,50 @@ const gameStats = (argv, context) => {
 	const name = argv.join(' ');
 	const pResult = new Promise(function(resolve, reject) {
 		db.getGame(serverID, name)
-		.then((data) => {
+			.then((data) => {
 
-			const embed = initCustomRichEmbed(serverID, client);
+				const embed = initCustomRichEmbed(serverID, client);
 
-			// Calculate total time played and build players message
-			const guildMembers = client.guilds.get(serverID).members;
-			let totalPlayed = 0;
-			let playersMsg = '';
-			let displayName = '';
-			data.forEach((player) => {
-				totalPlayed += player.total;
-				displayName = guildMembers.get(player._id).displayName;
-				playersMsg += displayName + ': ' + buildTimeString(player.total) + '\n';
-			});
+				// Calculate total time played and build players message
+				const guildMembers = client.guilds.get(serverID).members;
+				let totalPlayed = 0;
+				let playersMsg = '';
+				let displayName = '';
+				data.forEach((player) => {
+					totalPlayed += player.total;
+					displayName = guildMembers.get(player._id).displayName;
+					playersMsg += displayName + ': ' + buildTimeString(player.total) + '\n';
+				});
 
-			// Build general stats
-			let generalStatsMsg = 'Played by a total of *' + data.length + '*  users';
-			generalStatsMsg += '\n';
-			generalStatsMsg += 'Total time played: ' + buildTimeString(totalPlayed);
-			generalStatsMsg += '\n';
+				// Build general stats
+				let generalStatsMsg = 'Played by a total of *' + data.length + '*  users';
+				generalStatsMsg += '\n';
+				generalStatsMsg += 'Total time played: ' + buildTimeString(totalPlayed);
+				generalStatsMsg += '\n';
 
-			// Build message embed
-			embed.setAuthor(name);
-			embed.setTitle('Overall statistics for this game:');
-			embed.setDescription(generalStatsMsg);
-			embed.addField('Players:', playersMsg, true);
+				// Build message embed
+				embed.setAuthor(name);
+				embed.setTitle('Overall statistics for this game:');
+				embed.setDescription(generalStatsMsg);
+				embed.addField('Players:', playersMsg, true);
 
-			// Fetch cover and url
-			parallel([
-				asyncify(() => findGameURL(name)),
-				asyncify(() => findGameCover(name)),
-			],
-			(err, result) => {
-				if (err == null) {
-					embed.setURL(result[0]);
-					if (result[1] != null) {
-						embed.setThumbnail(result[1]);
+				// Fetch cover and url
+				parallel([
+					asyncify(() => findGameURL(name)),
+					asyncify(() => findGameCover(name)),
+				],
+				(err, result) => {
+					if (err == null) {
+						embed.setURL(result[0]);
+						if (result[1] != null) {
+							embed.setThumbnail(result[1]);
+						}
 					}
-				}
-				resolve({ embed: embed });
+					resolve({ embed: embed });
+				});
+			}).catch((err) => {
+				resolve('`Error: ' + err + '`');
 			});
-		}).catch((err) => {
-			resolve('`Error: ' + err + '`');
-		});
 	});
 	return pResult;
 };

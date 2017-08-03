@@ -57,13 +57,13 @@ try {
 
 	bot.prependOnceListener('ready', () => {
 		bot.generateInvite(requiredPermissions)
-		.then((link) => {
+			.then((link) => {
 			/* eslint-disable no-console */
-			console.log('Add me to your server using this link:');
-			console.log(link);
+				console.log('Add me to your server using this link:');
+				console.log(link);
 			/* eslint-enable no-console */
-		})
-		.catch(err => console.error(err));
+			})
+			.catch(err => console.error(err));
 	});
 
 	bot.on('ready', () => {

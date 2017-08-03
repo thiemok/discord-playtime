@@ -23,7 +23,10 @@ const overview = (argv, context) => {
 			} else {
 				const topPlayers = results[0];
 				const topGames = results[1];
-				const totalPlayed = results[2][0].total;
+				let totalPlayed = 0;
+				if (results[2][0]) {
+					totalPlayed = results[2][0].total;
+				}
 
 				// Fetch game links
 				const gameTasks = [];

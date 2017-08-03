@@ -48,21 +48,21 @@ describe('Command gameStats', () => {
 	test('is building correctly', () => {
 
 		const expectedEmbed = initCustomRichEmbed(serverID, client)
-		.setAuthor(mockGameName)
-		.setTitle('Overall statistics for this game:')
-		.setDescription(
-			'Played by a total of *' + mockPlayers.length + '*  users\n'
+			.setAuthor(mockGameName)
+			.setTitle('Overall statistics for this game:')
+			.setDescription(
+				'Played by a total of *' + mockPlayers.length + '*  users\n'
 			+ 'Total time played: ' + buildTimeString(100) + '\n'
-		)
-		.addField(
-			'Players:',
-			members.get(1).displayName + ': ' + buildTimeString(mockPlayers[0].total) + '\n'
+			)
+			.addField(
+				'Players:',
+				members.get(1).displayName + ': ' + buildTimeString(mockPlayers[0].total) + '\n'
 			+ members.get(2).displayName + ': ' + buildTimeString(mockPlayers[1].total) + '\n'
 			+ members.get(3).displayName + ': ' + buildTimeString(mockPlayers[2].total) + '\n',
-			true
-		)
-		.setURL('https://testurl.com')
-		.setThumbnail('https://testurl.com');
+				true
+			)
+			.setURL('https://testurl.com')
+			.setThumbnail('https://testurl.com');
 
 		return expect(gameStats([mockGameName], context)).resolves.toEqual({ embed: expectedEmbed });
 	});
@@ -70,19 +70,19 @@ describe('Command gameStats', () => {
 	test('has no Thumbnail and GameUrl if on findGameURL or findGameCover error', () => {
 
 		const expectedEmbed = initCustomRichEmbed(serverID, client)
-		.setAuthor(mockGameName)
-		.setTitle('Overall statistics for this game:')
-		.setDescription(
-			'Played by a total of *' + mockPlayers.length + '*  users\n'
+			.setAuthor(mockGameName)
+			.setTitle('Overall statistics for this game:')
+			.setDescription(
+				'Played by a total of *' + mockPlayers.length + '*  users\n'
 			+ 'Total time played: ' + buildTimeString(100) + '\n'
-		)
-		.addField(
-			'Players:',
-			members.get(1).displayName + ': ' + buildTimeString(mockPlayers[0].total) + '\n'
+			)
+			.addField(
+				'Players:',
+				members.get(1).displayName + ': ' + buildTimeString(mockPlayers[0].total) + '\n'
 			+ members.get(2).displayName + ': ' + buildTimeString(mockPlayers[1].total) + '\n'
 			+ members.get(3).displayName + ': ' + buildTimeString(mockPlayers[2].total) + '\n',
-			true
-		);
+				true
+			);
 
 		findGameURL.mockImplementationOnce(() => erroringPromise);
 		findGameCover.mockImplementationOnce(() => erroringPromise);

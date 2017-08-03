@@ -7,12 +7,12 @@ import igdb from 'igdb-api-node';
  */
 const findGameURL = (game) => {
 	const pURL = new Promise((resolve, reject) => {
-		igdb.games({ search: game, fields: 'url' })
-		.then((response) => {
-			resolve(response.body[0].url);
-		}).catch((err) => {
-			reject(err);
-		});
+		igdb().games({ search: game, fields: 'url' })
+			.then((response) => {
+				resolve(response.body[0].url);
+			}).catch((err) => {
+				reject(err);
+			});
 	});
 	return pURL;
 };
@@ -24,13 +24,13 @@ const findGameURL = (game) => {
  */
 const findGameCover = (game) => {
 	const pCover = new Promise((resolve, reject) => {
-		igdb.games({ search: game, fields: 'cover' })
-		.then((response) => {
-			resolve('https:' + response.body[0].cover.url);
-		}).catch((err) => {
-			console.log(err);
-			resolve(null);
-		});
+		igdb().games({ search: game, fields: 'cover' })
+			.then((response) => {
+				resolve('https:' + response.body[0].cover.url);
+			}).catch((err) => {
+				console.log(err);
+				resolve(null);
+			});
 	});
 	return pCover;
 };

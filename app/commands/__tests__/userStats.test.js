@@ -45,20 +45,20 @@ describe('Command userStats', () => {
 
 		const testMember = members.get(1);
 		const expectedEmbed = initCustomRichEmbed(serverID, client)
-		.setAuthor(testMember.displayName)
-		.setThumbnail(testMember.user.avatarURL)
-		.setTitle('Overall statistics for this user:')
-		.setDescription(
-			'Played a total of *' + mockGames.length + '* different games\n'
+			.setAuthor(testMember.displayName)
+			.setThumbnail(testMember.user.avatarURL)
+			.setTitle('Overall statistics for this user:')
+			.setDescription(
+				'Played a total of *' + mockGames.length + '* different games\n'
 			+ 'Total time played: ' + buildTimeString(100) + '\n'
-		)
-		.addField(
-			'Games:',
-			buildRichGameString(mockGames[0]) + '\n'
+			)
+			.addField(
+				'Games:',
+				buildRichGameString(mockGames[0]) + '\n'
 			+ buildRichGameString(mockGames[1]) + '\n'
 			+ buildRichGameString(mockGames[2]) + '\n',
-			true
-		);
+				true
+			);
 
 		return expect(userStats([members.get(1).displayName], context)).resolves.toEqual({ embed: expectedEmbed });
 	});

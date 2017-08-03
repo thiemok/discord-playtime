@@ -11,21 +11,21 @@ const exportJSON = (argv, context) => {
 		if (member.permissions.hasPermission('ADMINISTRATOR')) {
 			// Export data
 			db.getAllDataForServer(serverID)
-			.then((data) => {
+				.then((data) => {
 				// Create buffer from string representation of data and send it
-				member.sendFile(
-					Buffer.from(JSON.stringify(data, null, '\t')),
-					'export.JSON',
-					'Data export finished'
-				)
-				.then(() => {
-					resolve("psst I'm sending you a private message");
+					member.sendFile(
+						Buffer.from(JSON.stringify(data, null, '\t')),
+						'export.JSON',
+						'Data export finished'
+					)
+						.then(() => {
+							resolve("psst I'm sending you a private message");
+						}).catch((err) => {
+							resolve('`Error: ' + err + '`');
+						});
 				}).catch((err) => {
 					resolve('`Error: ' + err + '`');
 				});
-			}).catch((err) => {
-				resolve('`Error: ' + err + '`');
-			});
 		} else {
 			resolve('`You have insufficient permissions, only Admins can export`');
 		}
