@@ -5,10 +5,12 @@
   "main": "index.js",
   "scripts": {
     "test": "node_modules/jest/bin/jest.js",
+    "test-watch": "node_modules/jest/bin/jest.js --watchALL",
     "start": "node index.js",
-		"flow": "flow",
-		"flow-typed": "rimraf flow-typed/npm && flow-typed install --overwrite || true",
-		"postinstall": "[ \"$NODE_ENV\" == production ] && exit 0; npm run flow-typed"
+    "lint": "node_modules/eslint/bin/eslint.js .",
+    "flow": "flow",
+    "flow-typed": "rimraf flow-typed/npm && flow-typed install --overwrite || true",
+    "postinstall": "[ \"$NODE_ENV\" == production ] && exit 0; npm run flow-typed"
   },
   "author": "thiemok",
   "license": "GPL-3.0",
@@ -30,7 +32,8 @@
     "flow-bin": "^0.50.0",
     "flow-runtime": "^0.13.0",
     "flow-typed": "^2.1.5",
-    "jest": "^20.0.4"
+    "jest": "^20.0.4",
+    "mockdate": "^2.0.1"
   },
   "dependencies": {
     "async": "^2.1.5",

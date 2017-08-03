@@ -4,8 +4,8 @@
 		"add-module-exports",
 		"transform-runtime",
 		["babel-plugin-module-alias", [
-			{ "src": "./lib/tools", "expose": "tools" },
-			{ "src": "./constants", "expose": "constants" }
+			{ "src": "./app/commands", "expose": "commands" },
+			{ "src": "./app/util", "expose": "util" }
 		],
 		"flow-runtime", {
 			"assert": true,

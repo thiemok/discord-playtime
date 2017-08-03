@@ -2,7 +2,8 @@ discord-playtime
 =========
 A discord bot intended to track playtime. Written for nodejs and based on discord.js.
 
-![CI status](https://travis-ci.org/thiemok/discord-playtime.svg?branch=master)
+[![Build Status](https://travis-ci.org/thiemok/discord-playtime.svg?branch=master)](https://travis-ci.org/thiemok/discord-playtime)
+[![Dependency status](https://david-dm.org/thiemok/discord-playtime.svg)](https://david-dm.org/thiemok/discord-playtime)
 
 ### Setup
 * clone the repo
