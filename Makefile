@@ -18,3 +18,9 @@ lint:
 
 run:
 				yarn run start
+
+build:
+				yarn run build
+
+clean:
+				rm -rf build

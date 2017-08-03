@@ -4,6 +4,7 @@
   "description": "Discord Bot that collects playtime statistics",
   "main": "index.js",
   "scripts": {
+    "build": "babel app -d build --ignore __mocks__,__tests__",
     "test": "node_modules/jest/bin/jest.js",
     "test-watch": "node_modules/jest/bin/jest.js --watchALL",
     "start": "node index.js",
