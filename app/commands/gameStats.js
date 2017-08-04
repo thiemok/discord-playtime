@@ -2,6 +2,9 @@ import { asyncify, parallel } from 'async';
 import { initCustomRichEmbed } from 'util/embedHelpers';
 import { buildTimeString } from 'util/stringHelpers';
 import { findGameURL, findGameCover } from 'util/gameInfo';
+import logging from 'util/log';
+
+const logger = logging('playtime:commands:gameStats');
 
 /**
  * Generates a report on the given game,
@@ -11,6 +14,7 @@ import { findGameURL, findGameCover } from 'util/gameInfo';
  * @return {Promise}              Resolves when the generation has finished, with a sendable object
  */
 const gameStats = (argv, context) => {
+	logger.debug('Running cmd gameStats with args: %o', argv);
 	const { db, serverID, client } = context;
 	const name = argv.join(' ');
 	const pResult = new Promise(function(resolve, reject) {

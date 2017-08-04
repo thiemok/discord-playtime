@@ -3,6 +3,9 @@ import gameStats from './gameStats';
 import { help, unknownCmd } from './misc';
 import overview from './overview';
 import userStats from './userStats';
+import logging from 'util/log';
+
+const logger = logging('playtime:commands');
 
 const commands = {
 	Overview: overview,
@@ -22,6 +25,7 @@ const commands = {
  * @param  {Object} cfg    The bot config
  */
 function handleCommand(msg, client, db, cfg) {
+	logger.debug('Detected command\n%s', msg.content);
 	const args = msg.content.split(/\s+/g);
 
 	const context = {
@@ -41,7 +45,7 @@ function handleCommand(msg, client, db, cfg) {
 	command(args.slice(1), context)
 		.then((payload) => {
 			msg.channel.send(payload);
-		}).catch(error => console.log(error));
+		}).catch(error => logger.error(error));
 }
 
 export default handleCommand;

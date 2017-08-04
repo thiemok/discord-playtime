@@ -25,7 +25,6 @@ const buildRichGameString = (game) => {
 				entry = formattedTitle + ': ' + buildTimeString(game.total);
 				resolve(entry);
 			}).catch((err) => {
-				console.log(err);
 				formattedTitle = '**' + game._id + '**';
 				entry = formattedTitle + ': ' + buildTimeString(game.total);
 				resolve(entry);

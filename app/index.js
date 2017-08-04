@@ -1,8 +1,10 @@
 import Discord from 'discord.js';
-
 import DBConnector from './database';
 import Updater from './updater';
 import handleCommand from './commands';
+import logging from 'util/log';
+
+const logger = logging('playtime:main');
 
 const bot = new Discord.Client(
 	{
@@ -45,12 +47,11 @@ bot.on('message', (msg) => {
 
 bot.on('disconnect', (event) => {
 	dbUpdater.stop();
-	console.log('disconnected');
-	console.log(event.reason);
+	logger.debug('disconnected\n%s', event.reason);
 });
 
 bot.on('reconnecting', () => {
-	console.log('reconnecting');
+	logger.debug('reconnecting');
 });
 
 try {
@@ -63,11 +64,11 @@ try {
 				console.log(link);
 			/* eslint-enable no-console */
 			})
-			.catch(err => console.error(err));
+			.catch(err => logger.error(err));
 	});
 
 	bot.on('ready', () => {
-		console.log(`Logged in as ${bot.user.username}!`);
+		logger.debug(`Logged in as ${bot.user.username}!`);
 
 		// Set presence
 		const presence = bot.user.presence;
@@ -87,7 +88,7 @@ try {
 
 /* eslint-disable no-console */
 function gracefulExit() {
-	console.log('(⌒ー⌒)ﾉ');
+	logger.debug('(⌒ー⌒)ﾉ');
 
 	dbUpdater.stop(() => {
 		bot.destroy();
@@ -97,10 +98,7 @@ function gracefulExit() {
 
 function uncaughtException(err) {
 	// We can't close sessions here since it async
-	console.log('(╯°□°）╯︵ ┻━┻');
-	// Log error
-	console.log(err);
-	console.log(err.stack);
+	logger.error('(╯°□°）╯︵ ┻━┻\n%s', err);
 	// Logout
 	bot.destroy();
 }

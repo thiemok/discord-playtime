@@ -1,3 +1,6 @@
+import logging from 'util/log';
+
+const logger = logging('playtime:commands:export');
 /**
  * Exports all data for the current server as JSON
  * @param  {Array|String} argv    The arguments of the command, not used currently
@@ -5,6 +8,7 @@
  * @return {Promise}              Resolves when the export has finished, with a sendable object
  */
 const exportJSON = (argv, context) => {
+	logger.debug('Running cmd exportJSON for %s: %s', context.member.displayName, context.member.id);
 	const { member, serverID, db } = context;
 	const pResult = new Promise(function(resolve, reject) {
 		// Needs to be admin to export db
@@ -27,6 +31,7 @@ const exportJSON = (argv, context) => {
 					resolve('`Error: ' + err + '`');
 				});
 		} else {
+			logger.error('Attempted export with insufficent permissions by %s: %s', member.displayName, member.id);
 			resolve('`You have insufficient permissions, only Admins can export`');
 		}
 	});

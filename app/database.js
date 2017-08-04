@@ -1,5 +1,8 @@
 import { MongoClient } from 'mongodb';
 import assert from 'assert';
+import logging from 'util/log';
+
+const logger = logging('playtime:database');
 
 class DBConnector {
 	constructor(_url) {
@@ -17,15 +20,16 @@ class DBConnector {
 
 			// Prepare data
 			const now = Date.now();
-			collection.insert(
-				{
-					uid: session.member.id,
-					game: session.game,
-					duration: now - session.startDate.getTime(),
-					ended: now,
-					servers: session.member.client.guilds.keyArray(),
-				}
-			);
+			const data = {
+				uid: session.member.id,
+				game: session.game,
+				duration: now - session.startDate.getTime(),
+				ended: now,
+				servers: session.member.client.guilds.keyArray(),
+			};
+			collection.insert(data);
+
+			logger.debug('Inserted session: %o', data);
 
 			// Finish task
 			callback();
@@ -38,6 +42,7 @@ class DBConnector {
 	getGamesforPlayer(_id) {
 		const pResult = new Promise((resolve, reject) => {
 			this.runOperation((db, callback) => {
+				logger.debug('Querying games for player %s', _id);
 				const collection = db.collection('sessions');
 
 				collection.aggregate([
@@ -49,8 +54,7 @@ class DBConnector {
 					{ $sort: { total: -1 } },
 				]).toArray((err, docs) => {
 					if (err) {
-						console.log('Failed Database Query');
-						console.log(err);
+						logger.error('Failed Database Query\n%s', err);
 						reject('Error querying database. Please try again later');
 					} else if (docs.length === 0) {
 						// No data available
@@ -72,6 +76,7 @@ class DBConnector {
 	getGame(_server, _game) {
 		const pResult = new Promise((resolve, reject) => {
 			this.runOperation((db, callback) => {
+				logger.debug('Querying game %s', _game);
 				const collection = db.collection('sessions');
 
 				// Fetch all sessions for the given game and server
@@ -81,8 +86,7 @@ class DBConnector {
 					{ $sort: { total: -1 } },
 				]).toArray((err, docs) => {
 					if (err) {
-						console.log('Failed Database Query');
-						console.log(err);
+						logger.error('Failed Database Query\n%s', err);
 						reject('Error querying database. Please try again later');
 					} else if (docs.length === 0) {
 						// No data available
@@ -101,6 +105,7 @@ class DBConnector {
 	getTopPlayers(_server) {
 		const pResult = new Promise((resolve, reject) => {
 			this.runOperation((db, callback) => {
+				logger.debug('Querying top players for server %s', _server);
 				const collection = db.collection('sessions');
 
 				collection.aggregate([
@@ -110,8 +115,7 @@ class DBConnector {
 					{ $limit: 5 },
 				]).toArray((err, docs) => {
 					if (err) {
-						console.log('Failed Database Query');
-						console.log(err);
+						logger.error('Failed Database Query\n%s', err);
 						reject('Error querying database. Please try again later');
 					} else {
 						resolve(docs);
@@ -127,6 +131,7 @@ class DBConnector {
 	getTopGames(_server) {
 		const pResult = new Promise((resolve, reject) => {
 			this.runOperation((db, callback) => {
+				logger.debug('Querying top games for server %s', _server);
 				const collection = db.collection('sessions');
 
 				collection.aggregate([
@@ -136,8 +141,7 @@ class DBConnector {
 					{ $limit: 5 },
 				]).toArray((err, docs) => {
 					if (err) {
-						console.log('Failed Database Query');
-						console.log(err);
+						logger.error('Failed Database Query\n%s', err);
 						reject('Error querying database. Please try again later');
 					} else {
 						resolve(docs);
@@ -153,6 +157,7 @@ class DBConnector {
 	getTotalTimePlayed(_server) {
 		const pResult = new Promise((resolve, reject) => {
 			this.runOperation((db, callback) => {
+				logger.debug('Querying total time played for server %s', _server);
 				const collection = db.collection('sessions');
 
 				collection.aggregate([
@@ -160,8 +165,7 @@ class DBConnector {
 					{ $group: { _id: null, total: { $sum: '$duration' } } },
 				]).toArray((err, docs) => {
 					if (err) {
-						console.log('Failed Database Query');
-						console.log(err);
+						logger.error('Failed Database Query\n%s', err);
 						reject('Error querying database. Please try again later');
 					} else {
 						resolve(docs);
@@ -177,12 +181,12 @@ class DBConnector {
 	getAllDataForServer(_server) {
 		const pResult = new Promise((resolve, reject) => {
 			this.runOperation((db, callback) => {
+				logger.debug('Querying all data for server %s', _server);
 				const collection = db.collection('sessions');
 
 				collection.find({ servers: _server }).toArray((err, data) => {
 					if (err) {
-						console.log('Failed Database Query');
-						console.log(err);
+						logger.error('Failed Database Query\n%s', err);
 						reject('Error querying database. Please try again later');
 					} else {
 						// Strip sensitive ids
@@ -203,8 +207,7 @@ class DBConnector {
 	runOperation(operation, callback) {
 		MongoClient.connect(this.url, (err, db) => {
 			if (err) {
-				console.log('Failed to Connect to Database');
-				console.log(err);
+				logger.error('Failed to Connect to Database\n%s', err);
 			}
 			operation(db, () => {
 				db.close();
