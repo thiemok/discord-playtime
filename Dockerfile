@@ -19,7 +19,7 @@ FROM node:boron-alpine
 ENV NODE_ENV=production
 
 # Add tini
-RUN apk add --no-cache tini
+RUN apk add --no-cache tini curl
 ENTRYPOINT ["/sbin/tini", "--"]
 
 # Create app directory
