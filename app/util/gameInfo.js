@@ -8,6 +8,7 @@ const logger = logging('playtime:util:gameInfo');
  * @return {Promise}     Promise resolving when the search has finished, and returning the url of the found game
  */
 const findGameURL = (game) => {
+	logger.debug('Fetching url for %s', game);
 	const pURL = new Promise((resolve, reject) => {
 		igdb().games({ search: game, fields: 'url' })
 			.then((response) => {
@@ -26,6 +27,7 @@ const findGameURL = (game) => {
  * @return {Promise}     Promise resolving when the search has finished, and returning the url of the found games cover
  */
 const findGameCover = (game) => {
+	logger.debug('Fetching cover for %s', game);
 	const pCover = new Promise((resolve, reject) => {
 		igdb().games({ search: game, fields: 'cover' })
 			.then((response) => {

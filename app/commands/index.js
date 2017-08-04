@@ -25,6 +25,7 @@ const commands = {
  * @param  {Object} cfg    The bot config
  */
 function handleCommand(msg, client, db, cfg) {
+	logger.debug('Detected command\n%s', msg.content);
 	const args = msg.content.split(/\s+/g);
 
 	const context = {

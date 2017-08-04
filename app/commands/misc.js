@@ -1,3 +1,6 @@
+import logging from 'util/log';
+
+const logger = logging('playtime:commands:misc');
 /**
  * Generates a help message
  * @param  {Array|String} argv    The args of the command, currently unused
@@ -5,6 +8,7 @@
  * @return {Promise}              Resolves when the export has finished, with a sendable object
  */
 const help = (argv, context) => {
+	logger.debug('Running cmd help');
 	const { cfg } = context;
 	const pResult = new Promise(function(resolve, reject) {
 		const prefix = cfg.commandPrefix;
@@ -28,6 +32,7 @@ const help = (argv, context) => {
  * @return {Promise}              Resolves when the export has finished, with a sendable object
  */
 const unknownCmd = (argv, context) => {
+	logger.debug('Running cmd unknownCmd');
 	const { cfg } = context;
 	const pResult = new Promise(function(resolve, reject) {
 		resolve('`I do not know that command! Please use ' + cfg.commandPrefix + 'Help to list available commands.`');

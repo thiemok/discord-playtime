@@ -1,6 +1,9 @@
 import { parallel, asyncify } from 'async';
 import { initCustomRichEmbed } from 'util/embedHelpers';
 import { buildTimeString, buildRichGameString } from 'util/stringHelpers';
+import logging from 'util/log';
+
+const logger = logging('playtime:commands:overview');
 
 /**
  * Generates a overview of total time played, top players and top games
@@ -10,6 +13,7 @@ import { buildTimeString, buildRichGameString } from 'util/stringHelpers';
  * @return  {Promise}               Promise resolving when the generation has finished, with a sendable object
  */
 const overview = (argv, context) => {
+	logger.debug('Running cmd overview with args: %o', argv);
 	const { db, serverID, client } = context;
 	const pResult = new Promise((resolve, reject) => {
 		parallel([

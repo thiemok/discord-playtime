@@ -1,7 +1,9 @@
 import { asyncify, parallel } from 'async';
 import { initCustomRichEmbed } from 'util/embedHelpers';
 import { buildTimeString, buildRichGameString } from 'util/stringHelpers';
+import logging from 'util/log';
 
+const logger = logging('playtime:commands:userStats');
 /**
  * Generates a report on the given user,
  * containing the total time played and time played for individual games
@@ -10,6 +12,7 @@ import { buildTimeString, buildRichGameString } from 'util/stringHelpers';
  * @return  {Promise}             Resolves when the generation has finished, with a sendable object
  */
 const userStats = (argv, context) => {
+	logger.debug('Running cmd userStats with args: %o', argv);
 	const { db, serverID, client } = context;
 	const name = argv.join(' ');
 	const pResult = new Promise(function(resolve, reject) {

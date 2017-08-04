@@ -1,4 +1,7 @@
 import parallel from 'async/parallel';
+import logging from 'util/log';
+
+const logger = logging('playtime:updater');
 
 class Session {
 	constructor(game, member, servers) {
@@ -79,6 +82,7 @@ class Updater {
 	openSession(member) {
 		// Check if member needs tracking
 		if (this.needsTracking(member)) {
+			logger.debug('Opening session for %s', member.displayName);
 			const servers = [];
 			this.client.guilds.forEach((server, sid) => {
 				if (server.available) {
@@ -96,6 +100,7 @@ class Updater {
 	closeSession(member, callback = () => {}, force = false) {
 		// Check if is forced or needs closing
 		if (force || this.needsClosing(member)) {
+			logger.debug('Closing session for %s', member.displayName);
 			// Write session to db
 			this.db.insertSession(this.activeSessions.get(member.id), callback);
 
@@ -105,6 +110,7 @@ class Updater {
 
 	// Start tracking users presences
 	start() {
+		logger.debug('Starting tracking');
 		// Start Sessions for already connected and playing users
 		this.client.guilds.forEach((guild) => {
 			guild.members.forEach((member) => {
@@ -118,6 +124,7 @@ class Updater {
 
 	// Stop tracking user presences
 	stop(_callback) {
+		logger.debug('Stopping tracking');
 		// Remove event listener
 		this.client.removeListener('presenceUpdated', this.presenceUpdated);
 		// Close all open Sessions

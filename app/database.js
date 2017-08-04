@@ -20,15 +20,16 @@ class DBConnector {
 
 			// Prepare data
 			const now = Date.now();
-			collection.insert(
-				{
-					uid: session.member.id,
-					game: session.game,
-					duration: now - session.startDate.getTime(),
-					ended: now,
-					servers: session.member.client.guilds.keyArray(),
-				}
-			);
+			const data = {
+				uid: session.member.id,
+				game: session.game,
+				duration: now - session.startDate.getTime(),
+				ended: now,
+				servers: session.member.client.guilds.keyArray(),
+			};
+			collection.insert(data);
+
+			logger.debug('Inserted session: %o', data);
 
 			// Finish task
 			callback();
@@ -41,6 +42,7 @@ class DBConnector {
 	getGamesforPlayer(_id) {
 		const pResult = new Promise((resolve, reject) => {
 			this.runOperation((db, callback) => {
+				logger.debug('Querying games for player %s', _id);
 				const collection = db.collection('sessions');
 
 				collection.aggregate([
@@ -74,6 +76,7 @@ class DBConnector {
 	getGame(_server, _game) {
 		const pResult = new Promise((resolve, reject) => {
 			this.runOperation((db, callback) => {
+				logger.debug('Querying game %s', _game);
 				const collection = db.collection('sessions');
 
 				// Fetch all sessions for the given game and server
@@ -102,6 +105,7 @@ class DBConnector {
 	getTopPlayers(_server) {
 		const pResult = new Promise((resolve, reject) => {
 			this.runOperation((db, callback) => {
+				logger.debug('Querying top players for server %s', _server);
 				const collection = db.collection('sessions');
 
 				collection.aggregate([
@@ -127,6 +131,7 @@ class DBConnector {
 	getTopGames(_server) {
 		const pResult = new Promise((resolve, reject) => {
 			this.runOperation((db, callback) => {
+				logger.debug('Querying top games for server %s', _server);
 				const collection = db.collection('sessions');
 
 				collection.aggregate([
@@ -152,6 +157,7 @@ class DBConnector {
 	getTotalTimePlayed(_server) {
 		const pResult = new Promise((resolve, reject) => {
 			this.runOperation((db, callback) => {
+				logger.debug('Querying total time played for server %s', _server);
 				const collection = db.collection('sessions');
 
 				collection.aggregate([
@@ -175,6 +181,7 @@ class DBConnector {
 	getAllDataForServer(_server) {
 		const pResult = new Promise((resolve, reject) => {
 			this.runOperation((db, callback) => {
+				logger.debug('Querying all data for server %s', _server);
 				const collection = db.collection('sessions');
 
 				collection.find({ servers: _server }).toArray((err, data) => {
