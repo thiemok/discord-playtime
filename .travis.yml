@@ -20,6 +20,8 @@ script:
 
 jobs:
   include:
+  - stage: coverage
+    script: yarn run coverage-report
   - stage: docker_build
     script: docker build -t $TRAVIS_REPO_SLUG:$TRAVIS_COMMIT -t $TRAVIS_REPO_SLUG:latest .
 

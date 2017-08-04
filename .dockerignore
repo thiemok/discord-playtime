@@ -7,6 +7,7 @@ node_modules
 .flowconfig
 .eslint*
 build
+coverage
 
 # Misc
 README.md
