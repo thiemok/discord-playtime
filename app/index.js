@@ -47,8 +47,7 @@ bot.on('message', (msg) => {
 
 bot.on('disconnect', (event) => {
 	dbUpdater.stop();
-	logger.debug('disconnected');
-	logger.debug(event.reason);
+	logger.debug('disconnected\n%s', event.reason);
 });
 
 bot.on('reconnecting', () => {
@@ -99,10 +98,7 @@ function gracefulExit() {
 
 function uncaughtException(err) {
 	// We can't close sessions here since it async
-	logger.error('(╯°□°）╯︵ ┻━┻');
-	// Log error
-	logger.error(err);
-	logger.error(err.stack);
+	logger.error('(╯°□°）╯︵ ┻━┻\n%s', err);
 	// Logout
 	bot.destroy();
 }

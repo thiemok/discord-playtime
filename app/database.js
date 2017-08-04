@@ -1,5 +1,8 @@
 import { MongoClient } from 'mongodb';
 import assert from 'assert';
+import logging from 'util/log';
+
+const logger = logging('playtime:database');
 
 class DBConnector {
 	constructor(_url) {
@@ -49,8 +52,7 @@ class DBConnector {
 					{ $sort: { total: -1 } },
 				]).toArray((err, docs) => {
 					if (err) {
-						console.log('Failed Database Query');
-						console.log(err);
+						logger.error('Failed Database Query\n%s', err);
 						reject('Error querying database. Please try again later');
 					} else if (docs.length === 0) {
 						// No data available
@@ -81,8 +83,7 @@ class DBConnector {
 					{ $sort: { total: -1 } },
 				]).toArray((err, docs) => {
 					if (err) {
-						console.log('Failed Database Query');
-						console.log(err);
+						logger.error('Failed Database Query\n%s', err);
 						reject('Error querying database. Please try again later');
 					} else if (docs.length === 0) {
 						// No data available
@@ -110,8 +111,7 @@ class DBConnector {
 					{ $limit: 5 },
 				]).toArray((err, docs) => {
 					if (err) {
-						console.log('Failed Database Query');
-						console.log(err);
+						logger.error('Failed Database Query\n%s', err);
 						reject('Error querying database. Please try again later');
 					} else {
 						resolve(docs);
@@ -136,8 +136,7 @@ class DBConnector {
 					{ $limit: 5 },
 				]).toArray((err, docs) => {
 					if (err) {
-						console.log('Failed Database Query');
-						console.log(err);
+						logger.error('Failed Database Query\n%s', err);
 						reject('Error querying database. Please try again later');
 					} else {
 						resolve(docs);
@@ -160,8 +159,7 @@ class DBConnector {
 					{ $group: { _id: null, total: { $sum: '$duration' } } },
 				]).toArray((err, docs) => {
 					if (err) {
-						console.log('Failed Database Query');
-						console.log(err);
+						logger.error('Failed Database Query\n%s', err);
 						reject('Error querying database. Please try again later');
 					} else {
 						resolve(docs);
@@ -181,8 +179,7 @@ class DBConnector {
 
 				collection.find({ servers: _server }).toArray((err, data) => {
 					if (err) {
-						console.log('Failed Database Query');
-						console.log(err);
+						logger.error('Failed Database Query\n%s', err);
 						reject('Error querying database. Please try again later');
 					} else {
 						// Strip sensitive ids
@@ -203,8 +200,7 @@ class DBConnector {
 	runOperation(operation, callback) {
 		MongoClient.connect(this.url, (err, db) => {
 			if (err) {
-				console.log('Failed to Connect to Database');
-				console.log(err);
+				logger.error('Failed to Connect to Database\n%s', err);
 			}
 			operation(db, () => {
 				db.close();

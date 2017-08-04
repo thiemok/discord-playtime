@@ -3,6 +3,9 @@ import gameStats from './gameStats';
 import { help, unknownCmd } from './misc';
 import overview from './overview';
 import userStats from './userStats';
+import logging from 'util/log';
+
+const logger = logging('playtime:commands');
 
 const commands = {
 	Overview: overview,
@@ -41,7 +44,7 @@ function handleCommand(msg, client, db, cfg) {
 	command(args.slice(1), context)
 		.then((payload) => {
 			msg.channel.send(payload);
-		}).catch(error => console.log(error));
+		}).catch(error => logger.error(error));
 }
 
 export default handleCommand;

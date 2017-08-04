@@ -1,5 +1,7 @@
 import igdb from 'igdb-api-node';
+import logging from 'util/log';
 
+const logger = logging('playtime:util:gameInfo');
 /**
  * Searches igdb for the given game and returns its url
  * @param  {String} game The game to search for
@@ -11,6 +13,7 @@ const findGameURL = (game) => {
 			.then((response) => {
 				resolve(response.body[0].url);
 			}).catch((err) => {
+				logger.error(err);
 				reject(err);
 			});
 	});
@@ -28,7 +31,7 @@ const findGameCover = (game) => {
 			.then((response) => {
 				resolve('https:' + response.body[0].cover.url);
 			}).catch((err) => {
-				console.log(err);
+				logger.error(err);
 				resolve(null);
 			});
 	});
