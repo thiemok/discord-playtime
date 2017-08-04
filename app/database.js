@@ -203,6 +203,13 @@ class DBConnector {
 		return pResult;
 	}
 
+	/* eslint-disable class-methods-use-this */
+	// This is a quick stub provide support ans fully implement it when rewriting db code
+	connectionStatus() {
+		return 0;
+	}
+	/* eslint-enable class-methods-use-this */
+
 	// Handles db connection
 	runOperation(operation, callback) {
 		MongoClient.connect(this.url, (err, db) => {
