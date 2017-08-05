@@ -5,11 +5,6 @@
 		"transform-runtime",
 		["module-resolver", {
 			"root": ["./app"]
-		},
-		"flow-runtime", {
-			"assert": true,
-			"annotate": true
-			}
-		]
+		}]
 	]
 }
