@@ -43,6 +43,7 @@ function getConfig(): Config {
 		// Set mashape api key for igdb game scraping
 		global.mashapeKey = cfg.mashapeKey;
 	} catch (err) {
+		// Reading config failed using ENV
 		const {
 			DISCORD_TOKEN,
 			MONGO_URL,
@@ -50,14 +51,17 @@ function getConfig(): Config {
 			HEALTHCHECK,
 			HEALTHCHECK_PORT,
 		} = process.env;
-		// Reading config failed using ENV
-		cfg = {
-			token: DISCORD_TOKEN,
-			dbUrl: MONGO_URL,
-			commandPrefix: COMMAND_PREFIX,
-			healthcheck: (HEALTHCHECK && HEALTHCHECK.toLowerCase() === 'true'),
-			healthcheckPort: (parseInt(HEALTHCHECK_PORT) || 3000),
-		};
+		if (DISCORD_TOKEN && MONGO_URL) {
+			cfg = {
+				token: DISCORD_TOKEN,
+				dbUrl: MONGO_URL,
+				commandPrefix: (COMMAND_PREFIX || '!gt'),
+				healthcheck: (HEALTHCHECK != null && HEALTHCHECK.toLowerCase === 'true'),
+				healthcheckPort: (parseInt(HEALTHCHECK_PORT) || 3000),
+			};
+		} else {
+			throw new Error('Failed to load required configuration options');
+		}
 	}
 
 	return cfg;
