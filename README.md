@@ -4,6 +4,7 @@ A discord bot intended to track playtime. Written for nodejs and based on discor
 
 [![Build Status](https://travis-ci.org/thiemok/discord-playtime.svg?branch=master)](https://travis-ci.org/thiemok/discord-playtime)
 [![Dependency status](https://david-dm.org/thiemok/discord-playtime.svg)](https://david-dm.org/thiemok/discord-playtime)
+[![Coverage Status](https://coveralls.io/repos/github/thiemok/discord-playtime/badge.svg?branch=master)](https://coveralls.io/github/thiemok/discord-playtime?branch=master)
 
 ### Setup
 * clone the repo
@@ -12,4 +13,4 @@ A discord bot intended to track playtime. Written for nodejs and based on discor
 * start the bot with `yarn start` and use the generated link to add the bot to your server
 
 ### Running on Docker
-* Use the following environment variables to configure the bot: `DISCORD_TOKEN, MONGO_URL, COMMAND_PREFIX, mashapeKey`
+* Use the following environment variables to configure the bot: `DISCORD_TOKEN, MONGO_URL, COMMAND_PREFIX, mashapeKey, HEALTHCHECK, HEALTHCHECK_PORT`

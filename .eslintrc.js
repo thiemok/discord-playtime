@@ -1,5 +1,5 @@
 module.exports = {
-	"extends": "airbnb",
+	"extends": "airbnb-base",
 	"parser": "babel-eslint",
 	"parserOptions": {
 		"ecmaVersion": 6,
@@ -100,6 +100,8 @@ module.exports = {
 				"tools.*",
 				"constants.*",
 				"app.*",
+				"util.*",
+				"commands"
 			]
 		}],
 		"import/extensions": 0,
