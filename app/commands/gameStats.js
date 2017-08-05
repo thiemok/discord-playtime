@@ -5,7 +5,7 @@ import { buildTimeString } from 'util/stringHelpers';
 import { findGameURL, findGameCover } from 'util/gameInfo';
 import logging from 'util/log';
 import type { CommandContext } from 'commands';
-import type { StringResolvable } from 'discord.js';
+import type { StringResolvable, Guild, GuildMember } from 'discord.js';
 
 const logger = logging('playtime:commands:gameStats');
 
@@ -19,6 +19,8 @@ const logger = logging('playtime:commands:gameStats');
 const gameStats = (argv: Array<string>, context: CommandContext): StringResolvable => {
 	logger.debug('Running cmd gameStats with args: %o', argv);
 	const { db, serverID, client } = context;
+	// $FlowFixMe We recieved a message on serverID so it must exist or something went horribly wrong
+	const guild = (client.guilds.get(serverID): Guild);
 	const name = argv.join(' ');
 	const pResult = new Promise(function(resolve, reject) {
 		db.getGame(serverID, name)
@@ -27,13 +29,15 @@ const gameStats = (argv: Array<string>, context: CommandContext): StringResolvab
 				const embed = initCustomRichEmbed(serverID, client);
 
 				// Calculate total time played and build players message
-				const guildMembers = client.guilds.get(serverID).members;
-				let totalPlayed = 0;
-				let playersMsg = '';
-				let displayName = '';
+				const guildMembers = guild.members;
+				let totalPlayed: number = 0;
+				let playersMsg: string = '';
+				let displayName: string = '';
+				let member: ?GuildMember;
 				data.forEach((player) => {
+					member = guildMembers.get(player._id);
 					totalPlayed += player.total;
-					displayName = guildMembers.get(player._id).displayName;
+					displayName = (member != null) ? member.displayName : '';
 					playersMsg += displayName + ': ' + buildTimeString(player.total) + '\n';
 				});
 

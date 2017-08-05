@@ -41,55 +41,27 @@ class Updater {
 
 	// Checks if the given member needs tracking
 	needsTracking(member: GuildMember): boolean {
-		let needsTracking = true;
-		// Check if member is not playing
-		if (member.presence.game == null) {
-			needsTracking = false;
+		if (member.presence.game == null) return false;
+		if (member.presence.status === 'idle') return false;
+		if (member.user.bot) return false;
 
-			// Check if member is already tracked
-		} else if (this.activeSessions.has(member.id)) {
-			// Check if game is equal to open session
-			if (this.activeSessions.get(member.id).game === member.presence.game.name) {
-				needsTracking = false;
-			}
+		const openSession = this.activeSessions.get(member.id);
+		if (openSession != null && openSession.game === member.presence.game.name) return false;
 
-			// Check if member is afk
-		} else if (member.presence.status === 'idle') {
-			needsTracking = false;
-
-			// Check if member is a bot
-		} else if (member.user.bot) {
-			needsTracking = false;
-		}
-		return needsTracking;
+		return true;
 	}
 
 	// Checks if the session of the given member needs closing
 	needsClosing(member: GuildMember): boolean {
-		let needsClosing = false;
+		if (!this.activeSessions.has(member.id)) return false;
+		if (member.presence.status === 'idle') return true;
+		if (member.presence.status === 'offline') return true;
+		if (member.presence.game == null) return true;
 
-		// Check if member does have an open session
-		if (this.activeSessions.has(member.id)) {
+		const openSession = this.activeSessions.get(member.id);
+		if (openSession != null && openSession.game !== member.presence.game.name) return true;
 
-			// Check if member has gone afk
-			if (member.presence.status === 'idle') {
-				needsClosing = true;
-
-				// Check if member has gone offline
-			} else if (member.presence.status === 'offline') {
-				needsClosing = true;
-
-				// Check if member has stopped playing
-			} else if (member.presence.game == null) {
-				needsClosing = true;
-
-				// Check if member changed game
-			} else if (this.activeSessions.get(member.id).game !== member.presence.game.name) {
-				needsClosing = true;
-			}
-		}
-
-		return needsClosing;
+		return false;
 	}
 
 	// Start a session for the given member of needed
@@ -116,9 +88,13 @@ class Updater {
 		if (force || this.needsClosing(member)) {
 			logger.debug('Closing session for %s', member.displayName);
 			// Write session to db
-			this.db.insertSession(this.activeSessions.get(member.id), callback);
+			const openSession = this.activeSessions.get(member.id);
+			if (openSession != null) {
+				// $FlowFixMe WTF flow? this is clearly the right type...
+				this.db.insertSession(openSession, callback);
 
-			this.activeSessions.delete(member.id);
+				this.activeSessions.delete(member.id);
+			}
 		}
 	}
 

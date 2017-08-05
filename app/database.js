@@ -6,6 +6,15 @@ import type { Session } from './updater';
 
 const logger = logging('playtime:database');
 
+export type Game = {
+	_id: string,
+	total: number,
+};
+export type Player = {
+	_id: string,
+	total: number,
+};
+
 class DBConnector {
 
 	url: string
@@ -232,11 +241,3 @@ class DBConnector {
 }
 
 export default DBConnector;
-export type Game = {
-	_id: string,
-	total: number,
-};
-export type Player = {
-	_id: string,
-	total: number,
-};

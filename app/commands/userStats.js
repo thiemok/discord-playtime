@@ -4,7 +4,7 @@ import initCustomRichEmbed from 'util/embedHelpers';
 import { buildTimeString, buildRichGameString } from 'util/stringHelpers';
 import logging from 'util/log';
 import type { CommandContext } from 'commands';
-import type { StringResolvable } from 'discord.js';
+import type { StringResolvable, Guild } from 'discord.js';
 
 const logger = logging('playtime:commands:userStats');
 /**
@@ -21,7 +21,9 @@ const userStats = (argv: Array<string>, context: CommandContext): Promise<String
 	const pResult = new Promise(function(resolve, reject) {
 
 		// Get user object
-		const member = client.guilds.get(serverID).members.find('displayName', name);
+		// $FlowFixMe We recieved a message on serverID so it must exist or something went horribly wrong
+		const guild = (client.guilds.get(serverID): Guild);
+		const member = guild.members.find('displayName', name);
 		if (member != null) {
 
 			// Get user data

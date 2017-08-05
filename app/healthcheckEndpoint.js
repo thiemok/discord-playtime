@@ -1,10 +1,9 @@
 // @flow
-import express from 'express';
+import express, { type $Application, type $Response, type $Request } from 'express';
 import * as discord from 'discord.js';
-import logging from 'util/log';
 import type { Client } from 'discord.js';
+import logging from 'util/log';
 import type DBConnector from './database';
-import type { $Application, $Response, $Request } from 'express';
 
 const logger = logging('playtime:healthcheck');
 

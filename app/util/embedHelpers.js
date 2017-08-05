@@ -1,6 +1,5 @@
 // @flow
-import { RichEmbed } from 'discord.js';
-import type { Client } from 'discord.js';
+import { RichEmbed, type Client } from 'discord.js';
 
 /**
  * Initializes a new RichEmbed with default customizations applied
@@ -11,12 +10,14 @@ import type { Client } from 'discord.js';
 const initCustomRichEmbed = (serverID: string, client: Client): RichEmbed => {
 	const embed = new RichEmbed();
 	const server = client.guilds.get(serverID);
-	const member = server.members.get(client.user.id);
+	if (server != null) {
+		const member = server.members.get(client.user.id);
+		if (member != null) {
 
-	if (member != null) {
-	// Set color to highest groups color
-		const color = member.highestRole.color;
-		embed.setColor(color);
+			// Set color to highest groups color
+			const color = member.highestRole.color;
+			embed.setColor(color);
+		}
 	}
 
 	// Set timestamp

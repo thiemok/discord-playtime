@@ -4,7 +4,7 @@ import initCustomRichEmbed from 'util/embedHelpers';
 import { buildTimeString, buildRichGameString } from 'util/stringHelpers';
 import logging from 'util/log';
 import type { CommandContext } from 'commands';
-import type { StringResolvable, GuildMember } from 'discord.js';
+import type { StringResolvable, GuildMember, Guild } from 'discord.js';
 
 
 const logger = logging('playtime:commands:overview');
@@ -19,7 +19,8 @@ const logger = logging('playtime:commands:overview');
 const overview = (argv: Array<string>, context: CommandContext): Promise<StringResolvable> => {
 	logger.debug('Running cmd overview with args: %o', argv);
 	const { db, serverID, client } = context;
-	const guild = client.guilds.get(serverID);
+	// $FlowFixMe We recieved a message on serverID so it must exist or something went horribly wrong 
+	const guild = (client.guilds.get(serverID): Guild);
 	const pResult = new Promise((resolve, reject) => {
 		parallel([
 			asyncify(() => db.getTopPlayers(serverID)),
