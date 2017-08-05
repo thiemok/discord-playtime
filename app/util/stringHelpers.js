@@ -1,6 +1,8 @@
-import { findGameURL } from './gameInfo';
+// @flow
+import { findGameURL } from 'util/gameInfo';
+import type { Game } from '../database';
 
-const buildTimeString = (duration) => {
+export const buildTimeString = (duration: number): string => {
 	const totalMinutes = (duration / 1000) / 60;
 	const dayPart = Math.floor(totalMinutes / (60 * 24));
 	const hourPart = Math.floor((totalMinutes / 60) % 24);
@@ -14,7 +16,7 @@ const buildTimeString = (duration) => {
 	return timeString;
 };
 
-const buildRichGameString = (game) => {
+export const buildRichGameString = (game: Game): Promise<string> => {
 	const pTitle = new Promise((resolve, reject) => {
 		let entry = '';
 		let formattedTitle = '';
@@ -31,9 +33,4 @@ const buildRichGameString = (game) => {
 			});
 	});
 	return pTitle;
-};
-
-export default {
-	buildRichGameString,
-	buildTimeString,
 };

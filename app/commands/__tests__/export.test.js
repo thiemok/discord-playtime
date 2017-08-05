@@ -1,5 +1,5 @@
 /* eslint-env jest */
-import { exportJSON } from '../export';
+import exportJSON from '../export';
 import db from '../../database';
 import mockClientFactory from '../../../__mocks__/discordjs.client';
 import mockGuildMemberFactory from '../../../__mocks__/discordjs.guildMember';
@@ -27,7 +27,7 @@ const context = {
 const erroringPromise = Promise.reject('Fail');
 
 beforeEach(() => {
-	member.sendFile.mockClear();
+	member.send.mockClear();
 });
 
 describe('Command exportJSON', () => {
@@ -37,10 +37,12 @@ describe('Command exportJSON', () => {
 		exportJSON([], context)
 			.then((res) => {
 				expect(res).toBe(expectedResolution);
-				expect(member.sendFile).lastCalledWith(
-					Buffer.from(JSON.stringify(db.__getMockData(), null, '\t')),
-					'export.JSON',
-					'Data export finished'
+				expect(member.send).lastCalledWith(
+					[
+						Buffer.from(JSON.stringify(db.__getMockData(), null, '\t')),
+						'export.JSON',
+						'Data export finished',
+					]
 				);
 				done();
 			}).catch((error) => {
@@ -59,7 +61,7 @@ describe('Command exportJSON', () => {
 		exportJSON([], context)
 			.then((res) => {
 				expect(res).toBe(expectedResolution);
-				expect(member.sendFile).not.toBeCalled();
+				expect(member.send).not.toBeCalled();
 				done();
 			}).catch((error) => {
 			// Fail by default here
@@ -72,7 +74,7 @@ describe('Command exportJSON', () => {
 
 	test('resolves to error msg on sendFile error', () => {
 		const expectedResolution = '`Error: Fail`';
-		member.sendFile.mockImplementationOnce(() => erroringPromise);
+		member.send.mockImplementationOnce(() => erroringPromise);
 
 		return expect(exportJSON([], context)).resolves.toBe(expectedResolution);
 	});

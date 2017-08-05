@@ -28,7 +28,7 @@ module.exports = {
 		"consistent-return": 1,
 		"flowtype/boolean-style": [2, "boolean"],
     "flowtype/define-flow-type": 1,
-    "flowtype/delimiter-dangle": [2, "never"],
+    "flowtype/delimiter-dangle": [2, "always-multiline"],
     "flowtype/generic-spacing": [2, "never"],
     "flowtype/no-primitive-constructor-types": 2,
     "flowtype/no-weak-types": 1,

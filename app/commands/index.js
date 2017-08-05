@@ -1,9 +1,13 @@
-import { exportJSON } from './export';
-import gameStats from './gameStats';
-import { help, unknownCmd } from './misc';
-import overview from './overview';
-import userStats from './userStats';
+// @flow
+import exportJSON from 'commands/export';
+import gameStats from 'commands/gameStats';
+import { help, unknownCmd } from 'commands/misc';
+import overview from 'commands/overview';
+import userStats from 'commands/userStats';
 import logging from 'util/log';
+import type DBConnector from '../database';
+import type { Client, GuildMember, Message, TextChannel } from 'discord.js';
+import type { Config } from '../index';
 
 const logger = logging('playtime:commands');
 
@@ -24,7 +28,7 @@ const commands = {
  * @param  {Object} db     The db connector
  * @param  {Object} cfg    The bot config
  */
-function handleCommand(msg, client, db, cfg) {
+function handleCommand(msg: Message, client: Client, db: DBConnector, cfg: Config) {
 	logger.debug('Detected command\n%s', msg.content);
 	const args = msg.content.split(/\s+/g);
 
@@ -44,8 +48,16 @@ function handleCommand(msg, client, db, cfg) {
 
 	command(args.slice(1), context)
 		.then((payload) => {
-			msg.channel.send(payload);
+			// $FlowIssue: Needs to be fixed in flow-typed
+			(msg.channel: TextChannel).send(payload);
 		}).catch(error => logger.error(error));
 }
 
 export default handleCommand;
+export type CommandContext = {
+	db: DBConnector,
+	serverID: string,
+	client: Client,
+	member: GuildMember,
+	cfg: Config,
+};

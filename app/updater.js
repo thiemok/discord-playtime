@@ -1,10 +1,19 @@
+// @flow
 import parallel from 'async/parallel';
 import logging from 'util/log';
+import type { GuildMember, Client } from 'discord.js';
+import type DBConnector from './database';
 
 const logger = logging('playtime:updater');
 
-class Session {
-	constructor(game, member, servers) {
+export class Session {
+
+	game: string
+	startDate: Date
+	member: GuildMember
+	servers: Array<string>
+
+	constructor(game: string, member: GuildMember, servers: Array<string>) {
 		this.game = game;
 		this.startDate = new Date();
 		this.member = member;
@@ -13,20 +22,25 @@ class Session {
 }
 
 class Updater {
-	constructor(client, db) {
+
+	db: DBConnector
+	client: Client
+	activeSessions: Map<string, Session>
+
+	constructor(client: Client, db: DBConnector) {
 		this.db = db;
 		this.client = client;
 		this.activeSessions = new Map();
+	}
 
-		// Handle updated presences
-		this.presenceUpdated = (oldMember, newMember) => {
-			this.closeSession(newMember);
-			this.openSession(newMember);
-		};
+	// Handle updated presences
+	presenceUpdated(oldMember: GuildMember, newMember: GuildMember) {
+		this.closeSession(newMember);
+		this.openSession(newMember);
 	}
 
 	// Checks if the given member needs tracking
-	needsTracking(member) {
+	needsTracking(member: GuildMember): boolean {
 		let needsTracking = true;
 		// Check if member is not playing
 		if (member.presence.game == null) {
@@ -51,7 +65,7 @@ class Updater {
 	}
 
 	// Checks if the session of the given member needs closing
-	needsClosing(member) {
+	needsClosing(member: GuildMember): boolean {
 		let needsClosing = false;
 
 		// Check if member does have an open session
@@ -79,7 +93,7 @@ class Updater {
 	}
 
 	// Start a session for the given member of needed
-	openSession(member) {
+	openSession(member: GuildMember) {
 		// Check if member needs tracking
 		if (this.needsTracking(member)) {
 			logger.debug('Opening session for %s', member.displayName);
@@ -97,7 +111,7 @@ class Updater {
 	}
 
 	// Closes, if needed or forced, the session of the given member and writes it to the db
-	closeSession(member, callback = () => {}, force = false) {
+	closeSession(member: GuildMember, callback: () => mixed = () => {}, force: boolean = false) {
 		// Check if is forced or needs closing
 		if (force || this.needsClosing(member)) {
 			logger.debug('Closing session for %s', member.displayName);
@@ -123,7 +137,7 @@ class Updater {
 	}
 
 	// Stop tracking user presences
-	stop(_callback) {
+	stop(_callback: ?() => mixed) {
 		logger.debug('Stopping tracking');
 		// Remove event listener
 		this.client.removeListener('presenceUpdated', this.presenceUpdated);

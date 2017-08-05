@@ -3,7 +3,7 @@ import gameStats from '../gameStats';
 import db from '../../database';
 import mockClientFactory from '../../../__mocks__/discordjs.client';
 import mockGuildMemberFactory from '../../../__mocks__/discordjs.guildMember';
-import { initCustomRichEmbed } from 'util/embedHelpers';
+import initCustomRichEmbed from 'util/embedHelpers';
 import { buildTimeString } from 'util/stringHelpers';
 import { findGameURL, findGameCover } from 'util/gameInfo';
 import MockDate from 'mockdate';

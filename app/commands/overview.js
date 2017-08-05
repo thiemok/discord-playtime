@@ -1,7 +1,11 @@
+// @flow
 import { parallel, asyncify } from 'async';
-import { initCustomRichEmbed } from 'util/embedHelpers';
+import initCustomRichEmbed from 'util/embedHelpers';
 import { buildTimeString, buildRichGameString } from 'util/stringHelpers';
 import logging from 'util/log';
+import type { CommandContext } from 'commands';
+import type { StringResolvable, GuildMember } from 'discord.js';
+
 
 const logger = logging('playtime:commands:overview');
 
@@ -12,9 +16,10 @@ const logger = logging('playtime:commands:overview');
  * @param   {Object}        context The context for which to generate the overview
  * @return  {Promise}               Promise resolving when the generation has finished, with a sendable object
  */
-const overview = (argv, context) => {
+const overview = (argv: Array<string>, context: CommandContext): Promise<StringResolvable> => {
 	logger.debug('Running cmd overview with args: %o', argv);
 	const { db, serverID, client } = context;
+	const guild = client.guilds.get(serverID);
 	const pResult = new Promise((resolve, reject) => {
 		parallel([
 			asyncify(() => db.getTopPlayers(serverID)),
@@ -42,12 +47,16 @@ const overview = (argv, context) => {
 						resolve('`' + err + '`');
 					} else {
 						// Build message parts
-						const guildMembers = client.guilds.get(serverID).members;
+						const guildMembers = guild.members;
 						let playersMsg = '';
 						let displayName = '';
+						let member: ?GuildMember;
 						topPlayers.forEach((player) => {
-							displayName = guildMembers.get(player._id).displayName;
-							playersMsg += displayName + ': ' + buildTimeString(player.total) + '\n';
+							member = guildMembers.get(player._id);
+							if (member != null) {
+								displayName = member.displayName;
+								playersMsg += displayName + ': ' + buildTimeString(player.total) + '\n';
+							}
 						});
 
 						let gamesMsg = '';
@@ -62,7 +71,7 @@ const overview = (argv, context) => {
 						// Build the final embed
 						const embed = initCustomRichEmbed(serverID, client);
 						embed.setAuthor('Overview');
-						embed.setThumbnail(client.guilds.get(serverID).iconURL);
+						embed.setThumbnail(guild.iconURL);
 						embed.setTitle('General statistics for this server');
 						embed.setDescription(generalStatsMsg);
 						embed.addField('Top players', playersMsg);

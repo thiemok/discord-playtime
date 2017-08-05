@@ -12,9 +12,8 @@
     "start": "node index.js",
     "lint": "node_modules/eslint/bin/eslint.js --cache --format=node_modules/eslint-formatter-pretty .",
     "lint-fix": "npm run lint -- --fix",
-    "flow": "flow",
-    "flow-typed": "rimraf flow-typed/npm && flow-typed install --overwrite || true",
-    "postinstall": "[ \"$NODE_ENV\" == production ] && exit 0; npm run flow-typed"
+    "flow": "node_modules/flow-bin/cli.js",
+    "flow-typed": "rimraf flow-typed/npm && flow-typed install --overwrite || true"
   },
   "author": "thiemok",
   "license": "GPL-3.0",
@@ -50,6 +49,7 @@
     "babel-preset-flow": "^6.23.0",
     "babel-preset-stage-0": "^6.24.1",
     "babel-register": "^6.24.1",
+    "debug": "^2.6.8",
     "discord.js": "^11.1.0",
     "express": "^4.15.3",
     "igdb-api-node": "^3.0.1",

@@ -1,7 +1,7 @@
 /* eslint-env jest */
 import overview from '../overview';
 import db from '../../database';
-import { initCustomRichEmbed } from 'util/embedHelpers';
+import initCustomRichEmbed from 'util/embedHelpers';
 import mockClientFactory from '../../../__mocks__/discordjs.client';
 import mockGuildMemberFactory from '../../../__mocks__/discordjs.guildMember';
 import { buildTimeString, buildRichGameString } from 'util/stringHelpers';

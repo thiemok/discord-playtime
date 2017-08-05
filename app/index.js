@@ -1,12 +1,20 @@
-import Discord from 'discord.js';
+// @flow
+import * as Discord from 'discord.js';
 import DBConnector from './database';
 import Updater from './updater';
-import handleCommand from './commands';
+import handleCommand from 'commands';
 import HealthcheckEndpoint from './healthcheckEndpoint';
 import logging from 'util/log';
 
 const logger = logging('playtime:main');
 
+export type Config = {
+	token: string,
+	dbUrl: string,
+	commandPrefix: string,
+	healthcheck: boolean,
+	healthcheckPort: number,
+};
 
 const client = new Discord.Client(
 	{
@@ -27,8 +35,8 @@ if (config.healthcheck) {
 }
 
 
-function getConfig() {
-	let cfg;
+function getConfig(): Config {
+	let cfg: Config;
 
 	try {
 		cfg = require('../config.json');
@@ -47,8 +55,8 @@ function getConfig() {
 			token: DISCORD_TOKEN,
 			dbUrl: MONGO_URL,
 			commandPrefix: COMMAND_PREFIX,
-			healthcheck: HEALTHCHECK.toLowerCase() === 'true',
-			healthcheckPort: parseInt(HEALTHCHECK_PORT) || 3000,
+			healthcheck: (HEALTHCHECK && HEALTHCHECK.toLowerCase() === 'true'),
+			healthcheckPort: (parseInt(HEALTHCHECK_PORT) || 3000),
 		};
 	}
 
@@ -88,9 +96,7 @@ try {
 		logger.debug(`Logged in as ${client.user.username}!`);
 
 		// Set presence
-		const presence = client.user.presence;
-		presence.game = { name: 'Big Brother', url: null };
-		client.user.setPresence(presence);
+		client.user.setPresence({ game: { name: 'Big Brother' } });
 
 		// Start updating now
 		dbUpdater.start();

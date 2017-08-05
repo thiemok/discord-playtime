@@ -17,7 +17,7 @@ const mockGuildMemberFactory = (id) => {
 		presence: {
 			status: 'online',
 		},
-		sendFile: jest.fn(() => new Promise((res, rej) => res())),
+		send: jest.fn(() => new Promise((res, rej) => res())),
 	};
 };
 

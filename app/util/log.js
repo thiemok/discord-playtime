@@ -1,7 +1,8 @@
+// @flow
 /* eslint-disable no-console */
 import logFactory from 'debug';
 
-export default function log(namespace) {
+export default function log(namespace: string) {
 	const debug = logFactory(namespace);
 
 	const error = logFactory(namespace);

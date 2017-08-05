@@ -1,11 +1,16 @@
+// @flow
 import { MongoClient } from 'mongodb';
 import assert from 'assert';
 import logging from 'util/log';
+import type { Session } from './updater';
 
 const logger = logging('playtime:database');
 
 class DBConnector {
-	constructor(_url) {
+
+	url: string
+
+	constructor(_url: string) {
 		this.url = _url;
 		MongoClient.connect(this.url, (err, db) => {
 			assert.equal(null, err);
@@ -14,7 +19,7 @@ class DBConnector {
 	}
 
 	// Writes the given session to the database
-	insertSession(session, _callback) {
+	insertSession(session: Session, _callback: () => mixed) {
 		this.runOperation((db, callback) => {
 			const collection = db.collection('sessions');
 
@@ -39,7 +44,7 @@ class DBConnector {
 	// Fetches data on Games played by the given player
 	// Fetched data is sorted by total time played per game
 	// Returns promise resolving on completion
-	getGamesforPlayer(_id) {
+	getGamesforPlayer(_id: string): Promise<Game[]> {
 		const pResult = new Promise((resolve, reject) => {
 			this.runOperation((db, callback) => {
 				logger.debug('Querying games for player %s', _id);
@@ -73,7 +78,7 @@ class DBConnector {
 	// Fetches data on playtime for the given game
 	// Fetched data is sorted by time played
 	// Returns promise resolving on completion
-	getGame(_server, _game) {
+	getGame(_server: string, _game: string): Promise<Game[]> {
 		const pResult = new Promise((resolve, reject) => {
 			this.runOperation((db, callback) => {
 				logger.debug('Querying game %s', _game);
@@ -102,7 +107,7 @@ class DBConnector {
 	}
 
 	// Finds the 5 players with the most total playtime of the given server
-	getTopPlayers(_server) {
+	getTopPlayers(_server: string): Promise<Player[]> {
 		const pResult = new Promise((resolve, reject) => {
 			this.runOperation((db, callback) => {
 				logger.debug('Querying top players for server %s', _server);
@@ -128,7 +133,7 @@ class DBConnector {
 	}
 
 	// Finds the 5 Games with the most total playtime for the given server
-	getTopGames(_server) {
+	getTopGames(_server: string): Promise<Game[]> {
 		const pResult = new Promise((resolve, reject) => {
 			this.runOperation((db, callback) => {
 				logger.debug('Querying top games for server %s', _server);
@@ -154,7 +159,7 @@ class DBConnector {
 	}
 
 	// Returns sum of totalPlayed of all members of the given server
-	getTotalTimePlayed(_server) {
+	getTotalTimePlayed(_server: string): Promise<{ total: number }[]> {
 		const pResult = new Promise((resolve, reject) => {
 			this.runOperation((db, callback) => {
 				logger.debug('Querying total time played for server %s', _server);
@@ -178,7 +183,7 @@ class DBConnector {
 	}
 
 	// Returns all Data for the given server
-	getAllDataForServer(_server) {
+	getAllDataForServer(_server: string): Promise<mixed> {
 		const pResult = new Promise((resolve, reject) => {
 			this.runOperation((db, callback) => {
 				logger.debug('Querying all data for server %s', _server);
@@ -205,13 +210,13 @@ class DBConnector {
 
 	/* eslint-disable class-methods-use-this */
 	// This is a quick stub provide support ans fully implement it when rewriting db code
-	connectionStatus() {
+	connectionStatus(): number {
 		return 0;
 	}
 	/* eslint-enable class-methods-use-this */
 
 	// Handles db connection
-	runOperation(operation, callback) {
+	runOperation(operation: (any, () => mixed) => mixed, callback: ?() => mixed) {
 		MongoClient.connect(this.url, (err, db) => {
 			if (err) {
 				logger.error('Failed to Connect to Database\n%s', err);
@@ -227,3 +232,11 @@ class DBConnector {
 }
 
 export default DBConnector;
+export type Game = {
+	_id: string,
+	total: number,
+};
+export type Player = {
+	_id: string,
+	total: number,
+};

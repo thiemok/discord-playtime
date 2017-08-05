@@ -1,8 +1,11 @@
+// @flow
 import { asyncify, parallel } from 'async';
-import { initCustomRichEmbed } from 'util/embedHelpers';
+import initCustomRichEmbed from 'util/embedHelpers';
 import { buildTimeString } from 'util/stringHelpers';
 import { findGameURL, findGameCover } from 'util/gameInfo';
 import logging from 'util/log';
+import type { CommandContext } from 'commands';
+import type { StringResolvable } from 'discord.js';
 
 const logger = logging('playtime:commands:gameStats');
 
@@ -13,7 +16,7 @@ const logger = logging('playtime:commands:gameStats');
  * @param  {Object}       context The context in which to generate the report
  * @return {Promise}              Resolves when the generation has finished, with a sendable object
  */
-const gameStats = (argv, context) => {
+const gameStats = (argv: Array<string>, context: CommandContext): StringResolvable => {
 	logger.debug('Running cmd gameStats with args: %o', argv);
 	const { db, serverID, client } = context;
 	const name = argv.join(' ');

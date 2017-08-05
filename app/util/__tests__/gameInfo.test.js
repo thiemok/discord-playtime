@@ -1,5 +1,5 @@
 /* eslint-env jest */
-import gameInfo from '../gameInfo';
+import * as gameInfo from '../gameInfo';
 
 const mockIgdb = {
 	games: jest.fn(),

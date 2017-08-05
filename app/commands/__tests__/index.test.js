@@ -1,6 +1,6 @@
 /* eslint-env jest */
 import handleCommand from '../index';
-import { exportJSON } from '../export';
+import exportJSON from '../export';
 import gameStats from '../gameStats';
 import { help, unknownCmd } from '../misc';
 import overview from '../overview';
