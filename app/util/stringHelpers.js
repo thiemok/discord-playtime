@@ -1,6 +1,6 @@
 // @flow
 import { findGameURL } from 'util/gameInfo';
-import type { Game } from '../database';
+import type { GameRecord } from '../database';
 
 export const buildTimeString = (duration: number): string => {
 	const totalMinutes = (duration / 1000) / 60;
@@ -16,7 +16,7 @@ export const buildTimeString = (duration: number): string => {
 	return timeString;
 };
 
-export const buildRichGameString = (game: Game): Promise<string> => {
+export const buildRichGameString = (game: GameRecord): Promise<string> => {
 	const pTitle = new Promise((resolve, reject) => {
 		let entry: string = '';
 		let formattedTitle: string = '';

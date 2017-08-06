@@ -6,11 +6,11 @@ import type { Session } from './updater';
 
 const logger = logging('playtime:database');
 
-export type Game = {
+export type GameRecord = {
 	_id: string,
 	total: number,
 };
-export type Player = {
+export type PlayerRecord = {
 	_id: string,
 	total: number,
 };
@@ -53,7 +53,7 @@ class DBConnector {
 	// Fetches data on Games played by the given player
 	// Fetched data is sorted by total time played per game
 	// Returns promise resolving on completion
-	getGamesforPlayer(_id: string): Promise<Game[]> {
+	getGamesforPlayer(_id: string): Promise<GameRecord[]> {
 		const pResult = new Promise((resolve, reject) => {
 			this.runOperation((db, callback) => {
 				logger.debug('Querying games for player %s', _id);
@@ -87,7 +87,7 @@ class DBConnector {
 	// Fetches data on playtime for the given game
 	// Fetched data is sorted by time played
 	// Returns promise resolving on completion
-	getGame(_server: string, _game: string): Promise<Game[]> {
+	getGame(_server: string, _game: string): Promise<GameRecord[]> {
 		const pResult = new Promise((resolve, reject) => {
 			this.runOperation((db, callback) => {
 				logger.debug('Querying game %s', _game);
@@ -116,7 +116,7 @@ class DBConnector {
 	}
 
 	// Finds the 5 players with the most total playtime of the given server
-	getTopPlayers(_server: string): Promise<Player[]> {
+	getTopPlayers(_server: string): Promise<PlayerRecord[]> {
 		const pResult = new Promise((resolve, reject) => {
 			this.runOperation((db, callback) => {
 				logger.debug('Querying top players for server %s', _server);
@@ -142,7 +142,7 @@ class DBConnector {
 	}
 
 	// Finds the 5 Games with the most total playtime for the given server
-	getTopGames(_server: string): Promise<Game[]> {
+	getTopGames(_server: string): Promise<GameRecord[]> {
 		const pResult = new Promise((resolve, reject) => {
 			this.runOperation((db, callback) => {
 				logger.debug('Querying top games for server %s', _server);
