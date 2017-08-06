@@ -6,12 +6,21 @@ import overview from 'commands/overview';
 import userStats from 'commands/userStats';
 import logging from 'util/log';
 import type DBConnector from '../database';
-import type { Client, GuildMember, Message, TextChannel } from 'discord.js';
+import type { Client, GuildMember, Message, TextChannel, StringResolvable } from 'discord.js';
 import type { Config } from '../index';
 
 const logger = logging('playtime:commands');
 
-const commands = {
+export type CommandContext = {
+	db: DBConnector,
+	serverID: string,
+	client: Client,
+	member: GuildMember,
+	cfg: Config,
+};
+export type Command = (Array<string>, CommandContext) => Promise<StringResolvable>;
+
+const commands: { [string]: Command } = {
 	Overview: overview,
 	UserStats: userStats,
 	GameStats: gameStats,
@@ -28,7 +37,7 @@ const commands = {
  * @param  {Object} db     The db connector
  * @param  {Object} cfg    The bot config
  */
-function handleCommand(msg: Message, client: Client, db: DBConnector, cfg: Config) {
+const handleCommand = (msg: Message, client: Client, db: DBConnector, cfg: Config) => {
 	logger.debug('Detected command\n%s', msg.content);
 	const args = msg.content.split(/\s+/g);
 
@@ -41,7 +50,7 @@ function handleCommand(msg: Message, client: Client, db: DBConnector, cfg: Confi
 	};
 
 	const cmd = args[0].replace(cfg.commandPrefix, '');
-	let command = commands[cmd];
+	let command: ?Command = commands[cmd];
 	if (!command) {
 		command = commands.UnknownCmd;
 	}
@@ -51,13 +60,6 @@ function handleCommand(msg: Message, client: Client, db: DBConnector, cfg: Confi
 			// $FlowIssue: Needs to be fixed in flow-typed
 			(msg.channel: TextChannel).send(payload);
 		}).catch(error => logger.error(error));
-}
+};
 
 export default handleCommand;
-export type CommandContext = {
-	db: DBConnector,
-	serverID: string,
-	client: Client,
-	member: GuildMember,
-	cfg: Config,
-};

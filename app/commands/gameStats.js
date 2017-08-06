@@ -16,7 +16,7 @@ const logger = logging('playtime:commands:gameStats');
  * @param  {Object}       context The context in which to generate the report
  * @return {Promise}              Resolves when the generation has finished, with a sendable object
  */
-const gameStats = (argv: Array<string>, context: CommandContext): StringResolvable => {
+const gameStats = (argv: Array<string>, context: CommandContext): Promise<StringResolvable> => {
 	logger.debug('Running cmd gameStats with args: %o', argv);
 	const { db, serverID, client } = context;
 	// $FlowFixMe We recieved a message on serverID so it must exist or something went horribly wrong
