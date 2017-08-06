@@ -39,6 +39,8 @@ function getConfig(): Config {
 	let cfg: Config;
 
 	try {
+		// This is hopefully replaced with a unified config method SOON(tm).
+		// $FlowIssue Yes this may fail flow, thats why its wrapped in error handling
 		cfg = require('../config.json');
 		// Set mashape api key for igdb game scraping
 		global.mashapeKey = cfg.mashapeKey;
