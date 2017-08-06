@@ -42,7 +42,7 @@ const gameStats = (argv: Array<string>, context: CommandContext): Promise<String
 				});
 
 				// Build general stats
-				let generalStatsMsg = 'Played by a total of *' + data.length + '*  users';
+				let generalStatsMsg: string = 'Played by a total of *' + data.length + '*  users';
 				generalStatsMsg += '\n';
 				generalStatsMsg += 'Total time played: ' + buildTimeString(totalPlayed);
 				generalStatsMsg += '\n';

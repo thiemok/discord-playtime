@@ -8,7 +8,7 @@ export const buildTimeString = (duration: number): string => {
 	const hourPart = Math.floor((totalMinutes / 60) % 24);
 	const minutePart = Math.floor(totalMinutes % 60);
 
-	let timeString = '*';
+	let timeString: string = '*';
 	timeString += (dayPart > 0) ? (dayPart + 'd ') : '';
 	timeString += (hourPart > 0) ? (hourPart + 'h ') : '';
 	timeString += minutePart + 'min*';
@@ -18,8 +18,8 @@ export const buildTimeString = (duration: number): string => {
 
 export const buildRichGameString = (game: Game): Promise<string> => {
 	const pTitle = new Promise((resolve, reject) => {
-		let entry = '';
-		let formattedTitle = '';
+		let entry: string = '';
+		let formattedTitle: string = '';
 
 		findGameURL(game._id)
 			.then((result) => {

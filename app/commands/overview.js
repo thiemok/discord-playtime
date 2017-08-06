@@ -19,7 +19,7 @@ const logger = logging('playtime:commands:overview');
 const overview = (argv: Array<string>, context: CommandContext): Promise<StringResolvable> => {
 	logger.debug('Running cmd overview with args: %o', argv);
 	const { db, serverID, client } = context;
-	// $FlowFixMe We recieved a message on serverID so it must exist or something went horribly wrong 
+	// $FlowFixMe We recieved a message on serverID so it must exist or something went horribly wrong
 	const guild = (client.guilds.get(serverID): Guild);
 	const pResult = new Promise((resolve, reject) => {
 		parallel([
@@ -33,7 +33,7 @@ const overview = (argv: Array<string>, context: CommandContext): Promise<StringR
 			} else {
 				const topPlayers = results[0];
 				const topGames = results[1];
-				let totalPlayed = 0;
+				let totalPlayed: number = 0;
 				if (results[2][0]) {
 					totalPlayed = results[2][0].total;
 				}
@@ -49,8 +49,8 @@ const overview = (argv: Array<string>, context: CommandContext): Promise<StringR
 					} else {
 						// Build message parts
 						const guildMembers = guild.members;
-						let playersMsg = '';
-						let displayName = '';
+						let playersMsg: string = '';
+						let displayName: string = '';
 						let member: ?GuildMember;
 						topPlayers.forEach((player) => {
 							member = guildMembers.get(player._id);
@@ -60,13 +60,13 @@ const overview = (argv: Array<string>, context: CommandContext): Promise<StringR
 							}
 						});
 
-						let gamesMsg = '';
+						let gamesMsg: string = '';
 						res.forEach((gameEntry) => {
 							gamesMsg += gameEntry + '\n';
 						});
 
 						// Build general stats
-						let generalStatsMsg = 'Total time played: ' + buildTimeString(totalPlayed);
+						let generalStatsMsg: string = 'Total time played: ' + buildTimeString(totalPlayed);
 						generalStatsMsg += '\n';
 
 						// Build the final embed

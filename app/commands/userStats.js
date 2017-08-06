@@ -36,7 +36,7 @@ const userStats = (argv: Array<string>, context: CommandContext): Promise<String
 				const tasks = [];
 
 				// Calculate total time played and build game titles
-				let totalPlayed = 0;
+				let totalPlayed: number = 0;
 				data.forEach((game) => {
 					totalPlayed += game.total;
 					tasks.push(asyncify(() => buildRichGameString(game)));
@@ -47,13 +47,13 @@ const userStats = (argv: Array<string>, context: CommandContext): Promise<String
 						resolve('`' + err + '`');
 					} else {
 						// Build games message
-						let gamesMsg = '';
+						let gamesMsg: string = '';
 						results.forEach((gameEntry) => {
 							gamesMsg += gameEntry + '\n';
 						});
 
 						// Build general stats
-						let generalStatsMsg = 'Played a total of *' + data.length + '* different games';
+						let generalStatsMsg: string = 'Played a total of *' + data.length + '* different games';
 						generalStatsMsg += '\n';
 						generalStatsMsg += 'Total time played: ' + buildTimeString(totalPlayed);
 						generalStatsMsg += '\n';
