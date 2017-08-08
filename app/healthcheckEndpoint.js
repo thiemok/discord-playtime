@@ -1,16 +1,27 @@
-import express from 'express';
-import { Constants } from 'discord.js';
+// @flow
+import express, { type $Application, type $Response, type $Request } from 'express';
+import * as discord from 'discord.js';
+import type { Client } from 'discord.js';
 import logging from 'util/log';
+import type DBConnector from './database';
 
 const logger = logging('playtime:healthcheck');
 
+// $FlowIssue missing in libdef
+const { Constants } = discord;
+
 class HealthcheckEndpoint {
 
-	constructor(client, db) {
+	djsClient: Client
+	db: DBConnector
+	endpoint: $Application
+
+	constructor(client: Client, db: DBConnector) {
 		this.djsClient = client;
 		this.db = db;
 		this.endpoint = express();
-		this.endpoint.get('/health', (req, res) => {
+		// $FlowIssue missing in lbdef
+		this.endpoint.get('/health', (req: $Request, res: $Response) => {
 			if (this.isHealthy()) {
 				res.status(200).json({ status: 'healthy' });
 			} else {
@@ -19,19 +30,19 @@ class HealthcheckEndpoint {
 		});
 	}
 
-	listen(port) {
+	listen(port: number) {
 		this.endpoint.listen(port);
 	}
 
-	dbIsHealthy() {
+	dbIsHealthy(): boolean {
 		return this.db.connectionStatus() === 0;
 	}
 
-	djsIsHealthy() {
+	djsIsHealthy(): boolean {
 		return this.djsClient.status === Constants.Status.READY;
 	}
 
-	isHealthy() {
+	isHealthy(): boolean {
 		if (!this.djsIsHealthy()) {
 			logger.debug('Discord connection died');
 			return false;

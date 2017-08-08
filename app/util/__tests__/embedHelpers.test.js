@@ -1,5 +1,5 @@
 /* eslint-env jest */
-import embedHelpers from '../embedHelpers';
+import initCustomRichEmbed from '../embedHelpers';
 import { RichEmbed } from 'discord.js';
 import MockDate from 'mockdate';
 import mockClientFactory from '../../../__mocks__/discordjs.client';
@@ -29,6 +29,6 @@ describe('EmbedHelpers', () => {
 				'https://assets-cdn.github.com/favicon.ico'
 			);
 
-		expect(embedHelpers.initCustomRichEmbed(serverID, client)).toEqual(expectedEmbed);
+		expect(initCustomRichEmbed(serverID, client)).toEqual(expectedEmbed);
 	});
 });

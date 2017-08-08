@@ -1,12 +1,14 @@
-import { findGameURL } from './gameInfo';
+// @flow
+import { findGameURL } from 'util/gameInfo';
+import type { GameRecord } from '../database';
 
-const buildTimeString = (duration) => {
+export const buildTimeString = (duration: number): string => {
 	const totalMinutes = (duration / 1000) / 60;
 	const dayPart = Math.floor(totalMinutes / (60 * 24));
 	const hourPart = Math.floor((totalMinutes / 60) % 24);
 	const minutePart = Math.floor(totalMinutes % 60);
 
-	let timeString = '*';
+	let timeString: string = '*';
 	timeString += (dayPart > 0) ? (dayPart + 'd ') : '';
 	timeString += (hourPart > 0) ? (hourPart + 'h ') : '';
 	timeString += minutePart + 'min*';
@@ -14,10 +16,10 @@ const buildTimeString = (duration) => {
 	return timeString;
 };
 
-const buildRichGameString = (game) => {
+export const buildRichGameString = (game: GameRecord): Promise<string> => {
 	const pTitle = new Promise((resolve, reject) => {
-		let entry = '';
-		let formattedTitle = '';
+		let entry: string = '';
+		let formattedTitle: string = '';
 
 		findGameURL(game._id)
 			.then((result) => {
@@ -31,9 +33,4 @@ const buildRichGameString = (game) => {
 			});
 	});
 	return pTitle;
-};
-
-export default {
-	buildRichGameString,
-	buildTimeString,
 };

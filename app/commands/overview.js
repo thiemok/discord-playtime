@@ -1,7 +1,11 @@
+// @flow
 import { parallel, asyncify } from 'async';
-import { initCustomRichEmbed } from 'util/embedHelpers';
+import initCustomRichEmbed from 'util/embedHelpers';
 import { buildTimeString, buildRichGameString } from 'util/stringHelpers';
 import logging from 'util/log';
+import type { CommandContext } from 'commands';
+import type { StringResolvable, GuildMember, Guild } from 'discord.js';
+
 
 const logger = logging('playtime:commands:overview');
 
@@ -12,9 +16,11 @@ const logger = logging('playtime:commands:overview');
  * @param   {Object}        context The context for which to generate the overview
  * @return  {Promise}               Promise resolving when the generation has finished, with a sendable object
  */
-const overview = (argv, context) => {
+const overview = (argv: Array<string>, context: CommandContext): Promise<StringResolvable> => {
 	logger.debug('Running cmd overview with args: %o', argv);
 	const { db, serverID, client } = context;
+	// $FlowFixMe We recieved a message on serverID so it must exist or something went horribly wrong
+	const guild = (client.guilds.get(serverID): Guild);
 	const pResult = new Promise((resolve, reject) => {
 		parallel([
 			asyncify(() => db.getTopPlayers(serverID)),
@@ -27,7 +33,7 @@ const overview = (argv, context) => {
 			} else {
 				const topPlayers = results[0];
 				const topGames = results[1];
-				let totalPlayed = 0;
+				let totalPlayed: number = 0;
 				if (results[2][0]) {
 					totalPlayed = results[2][0].total;
 				}
@@ -42,27 +48,31 @@ const overview = (argv, context) => {
 						resolve('`' + err + '`');
 					} else {
 						// Build message parts
-						const guildMembers = client.guilds.get(serverID).members;
-						let playersMsg = '';
-						let displayName = '';
+						const guildMembers = guild.members;
+						let playersMsg: string = '';
+						let displayName: string = '';
+						let member: ?GuildMember;
 						topPlayers.forEach((player) => {
-							displayName = guildMembers.get(player._id).displayName;
-							playersMsg += displayName + ': ' + buildTimeString(player.total) + '\n';
+							member = guildMembers.get(player._id);
+							if (member != null) {
+								displayName = member.displayName;
+								playersMsg += displayName + ': ' + buildTimeString(player.total) + '\n';
+							}
 						});
 
-						let gamesMsg = '';
+						let gamesMsg: string = '';
 						res.forEach((gameEntry) => {
 							gamesMsg += gameEntry + '\n';
 						});
 
 						// Build general stats
-						let generalStatsMsg = 'Total time played: ' + buildTimeString(totalPlayed);
+						let generalStatsMsg: string = 'Total time played: ' + buildTimeString(totalPlayed);
 						generalStatsMsg += '\n';
 
 						// Build the final embed
 						const embed = initCustomRichEmbed(serverID, client);
 						embed.setAuthor('Overview');
-						embed.setThumbnail(client.guilds.get(serverID).iconURL);
+						embed.setThumbnail(guild.iconURL);
 						embed.setTitle('General statistics for this server');
 						embed.setDescription(generalStatsMsg);
 						embed.addField('Top players', playersMsg);

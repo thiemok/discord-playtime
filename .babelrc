@@ -1,15 +1,10 @@
 {
-	"presets": ["es2015", "stage-0"],
+	"presets": ["es2015", "stage-0", "flow"],
 	"plugins": [
 		"add-module-exports",
 		"transform-runtime",
 		["module-resolver", {
 			"root": ["./app"]
-		},
-		"flow-runtime", {
-			"assert": true,
-			"annotate": true
-			}
-		]
+		}]
 	]
 }

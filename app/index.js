@@ -1,12 +1,20 @@
-import Discord from 'discord.js';
+// @flow
+import * as Discord from 'discord.js';
 import DBConnector from './database';
 import Updater from './updater';
-import handleCommand from './commands';
+import handleCommand from 'commands';
 import HealthcheckEndpoint from './healthcheckEndpoint';
 import logging from 'util/log';
 
 const logger = logging('playtime:main');
 
+export type Config = {
+	token: string,
+	dbUrl: string,
+	commandPrefix: string,
+	healthcheck: boolean,
+	healthcheckPort: number,
+};
 
 const client = new Discord.Client(
 	{
@@ -27,14 +35,17 @@ if (config.healthcheck) {
 }
 
 
-function getConfig() {
-	let cfg;
+function getConfig(): Config {
+	let cfg: Config;
 
 	try {
+		// This is hopefully replaced with a unified config method SOON(tm).
+		// $FlowIssue Yes this may fail flow, thats why its wrapped in error handling
 		cfg = require('../config.json');
 		// Set mashape api key for igdb game scraping
 		global.mashapeKey = cfg.mashapeKey;
 	} catch (err) {
+		// Reading config failed using ENV
 		const {
 			DISCORD_TOKEN,
 			MONGO_URL,
@@ -42,14 +53,17 @@ function getConfig() {
 			HEALTHCHECK,
 			HEALTHCHECK_PORT,
 		} = process.env;
-		// Reading config failed using ENV
-		cfg = {
-			token: DISCORD_TOKEN,
-			dbUrl: MONGO_URL,
-			commandPrefix: COMMAND_PREFIX,
-			healthcheck: HEALTHCHECK.toLowerCase() === 'true',
-			healthcheckPort: parseInt(HEALTHCHECK_PORT) || 3000,
-		};
+		if (DISCORD_TOKEN && MONGO_URL) {
+			cfg = {
+				token: DISCORD_TOKEN,
+				dbUrl: MONGO_URL,
+				commandPrefix: (COMMAND_PREFIX || '!gt'),
+				healthcheck: (HEALTHCHECK != null && HEALTHCHECK.toLowerCase === 'true'),
+				healthcheckPort: (parseInt(HEALTHCHECK_PORT) || 3000),
+			};
+		} else {
+			throw new Error('Failed to load required configuration options');
+		}
 	}
 
 	return cfg;
@@ -88,9 +102,7 @@ try {
 		logger.debug(`Logged in as ${client.user.username}!`);
 
 		// Set presence
-		const presence = client.user.presence;
-		presence.game = { name: 'Big Brother', url: null };
-		client.user.setPresence(presence);
+		client.user.setPresence({ game: { name: 'Big Brother' } });
 
 		// Start updating now
 		dbUpdater.start();

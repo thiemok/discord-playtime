@@ -1,4 +1,7 @@
+// @flow
 import logging from 'util/log';
+import type { CommandContext } from 'commands';
+import type { StringResolvable } from 'discord.js';
 
 const logger = logging('playtime:commands:misc');
 /**
@@ -7,12 +10,12 @@ const logger = logging('playtime:commands:misc');
  * @param  {Object}       context The context in which to generate the message
  * @return {Promise}              Resolves when the export has finished, with a sendable object
  */
-const help = (argv, context) => {
+export const help = (argv: Array<string>, context: CommandContext): Promise<StringResolvable> => {
 	logger.debug('Running cmd help');
 	const { cfg } = context;
 	const pResult = new Promise(function(resolve, reject) {
 		const prefix = cfg.commandPrefix;
-		let msg = '__**Help**__\n';
+		let msg: string = '__**Help**__\n';
 		msg += '\n';
 		msg += '**Available commands:**\n';
 		msg += prefix + 'Overview: *Displays the 5 top players and games*\n';
@@ -31,16 +34,11 @@ const help = (argv, context) => {
  * @param  {Object}       context The context in which to generate the message
  * @return {Promise}              Resolves when the export has finished, with a sendable object
  */
-const unknownCmd = (argv, context) => {
+export const unknownCmd = (argv: Array<string>, context: CommandContext): Promise<StringResolvable> => {
 	logger.debug('Running cmd unknownCmd');
 	const { cfg } = context;
 	const pResult = new Promise(function(resolve, reject) {
 		resolve('`I do not know that command! Please use ' + cfg.commandPrefix + 'Help to list available commands.`');
 	});
 	return pResult;
-};
-
-export default {
-	help,
-	unknownCmd,
 };

@@ -1,4 +1,7 @@
+// @flow
 import logging from 'util/log';
+import type { CommandContext } from 'commands';
+import type { StringResolvable } from 'discord.js';
 
 const logger = logging('playtime:commands:export');
 /**
@@ -7,7 +10,7 @@ const logger = logging('playtime:commands:export');
  * @param  {Object}       context The context in which the export the data
  * @return {Promise}              Resolves when the export has finished, with a sendable object
  */
-const exportJSON = (argv, context) => {
+const exportJSON = (argv: Array<string>, context: CommandContext): Promise<StringResolvable> => {
 	logger.debug('Running cmd exportJSON for %s: %s', context.member.displayName, context.member.id);
 	const { member, serverID, db } = context;
 	const pResult = new Promise(function(resolve, reject) {
@@ -17,11 +20,12 @@ const exportJSON = (argv, context) => {
 			db.getAllDataForServer(serverID)
 				.then((data) => {
 				// Create buffer from string representation of data and send it
-					member.sendFile(
+				// $FlowIssue: Needs to be fixed in flow-typed
+					member.send([
 						Buffer.from(JSON.stringify(data, null, '\t')),
 						'export.JSON',
-						'Data export finished'
-					)
+						'Data export finished',
+					])
 						.then(() => {
 							resolve("psst I'm sending you a private message");
 						}).catch((err) => {
@@ -38,6 +42,4 @@ const exportJSON = (argv, context) => {
 	return pResult;
 };
 
-export default {
-	exportJSON,
-};
+export default exportJSON;

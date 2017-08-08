@@ -16,7 +16,7 @@ before_install:
 
 script:
   - yarn run lint
-  - yarn run test
+  - yarn run test -- --maxWorkers=2
 
 jobs:
   include:

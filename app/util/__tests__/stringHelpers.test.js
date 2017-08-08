@@ -1,5 +1,5 @@
 /* eslint-env jest */
-import stringHelpers from '../stringHelpers';
+import * as stringHelpers from '../stringHelpers';
 import { findGameURL } from '../gameInfo';
 
 jest.mock('../gameInfo');
