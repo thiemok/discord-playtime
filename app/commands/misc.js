@@ -13,7 +13,7 @@ const logger = logging('playtime:commands:misc');
 export const help = (argv: Array<string>, context: CommandContext): Promise<StringResolvable> => {
 	logger.debug('Running cmd help');
 	const { cfg } = context;
-	const pResult = new Promise(function(resolve, reject) {
+	const pResult = new Promise((resolve, reject) => {
 		const prefix = cfg.commandPrefix;
 		let msg: string = '__**Help**__\n';
 		msg += '\n';
@@ -37,7 +37,7 @@ export const help = (argv: Array<string>, context: CommandContext): Promise<Stri
 export const unknownCmd = (argv: Array<string>, context: CommandContext): Promise<StringResolvable> => {
 	logger.debug('Running cmd unknownCmd');
 	const { cfg } = context;
-	const pResult = new Promise(function(resolve, reject) {
+	const pResult = new Promise((resolve, reject) => {
 		resolve('`I do not know that command! Please use ' + cfg.commandPrefix + 'Help to list available commands.`');
 	});
 	return pResult;

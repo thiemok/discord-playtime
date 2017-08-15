@@ -56,7 +56,7 @@ describe('Command exportJSON', () => {
 
 	test('resolves to insufficient permissions message for non administrators and does not send a file', (done) => {
 		const expectedResolution = '`You have insufficient permissions, only Admins can export`';
-		member.permissions.hasPermission.mockImplementationOnce(() => false);
+		member.permissions.has.mockImplementationOnce(() => false);
 
 		exportJSON([], context)
 			.then((res) => {

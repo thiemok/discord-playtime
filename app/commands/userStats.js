@@ -18,7 +18,7 @@ const userStats = (argv: Array<string>, context: CommandContext): Promise<String
 	logger.debug('Running cmd userStats with args: %o', argv);
 	const { db, serverID, client } = context;
 	const name = argv.join(' ');
-	const pResult = new Promise(function(resolve, reject) {
+	const pResult = new Promise((resolve, reject) => {
 
 		// Get user object
 		// $FlowFixMe We recieved a message on serverID so it must exist or something went horribly wrong

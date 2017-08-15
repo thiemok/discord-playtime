@@ -12,7 +12,7 @@ const mockGuildMemberFactory = (id) => {
 			color: 0,
 		},
 		permissions: {
-			hasPermission: jest.fn(() => true),
+			has: jest.fn(() => true),
 		},
 		presence: {
 			status: 'online',

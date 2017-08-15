@@ -13,9 +13,9 @@ const logger = logging('playtime:commands:export');
 const exportJSON = (argv: Array<string>, context: CommandContext): Promise<StringResolvable> => {
 	logger.debug('Running cmd exportJSON for %s: %s', context.member.displayName, context.member.id);
 	const { member, serverID, db } = context;
-	const pResult = new Promise(function(resolve, reject) {
+	const pResult = new Promise((resolve, reject) => {
 		// Needs to be admin to export db
-		if (member.permissions.hasPermission('ADMINISTRATOR')) {
+		if (member.permissions.has('ADMINISTRATOR')) {
 			// Export data
 			db.getAllDataForServer(serverID)
 				.then((data) => {
