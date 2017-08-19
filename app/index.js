@@ -102,7 +102,7 @@ try {
 		logger.debug(`Logged in as ${client.user.username}!`);
 
 		// Set presence
-		client.user.setPresence({ game: { name: 'Big Brother' } });
+		client.user.setPresence({ game: { name: 'Big Brother', type: 0 } });
 
 		// Start updating now
 		dbUpdater.start();
