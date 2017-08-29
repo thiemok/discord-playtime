@@ -1,6 +1,6 @@
 /* eslint-env jest */
-import gameStats from '../gameStats';
-import db from '../../database';
+import gameStats from 'commands/gameStats';
+import Session from 'models/session';
 import mockClientFactory from '../../../__mocks__/discordjs.client';
 import mockGuildMemberFactory from '../../../__mocks__/discordjs.guildMember';
 import initCustomRichEmbed from 'util/embedHelpers';
@@ -8,7 +8,7 @@ import { buildTimeString } from 'util/stringHelpers';
 import { findGameURL, findGameCover } from 'util/gameInfo';
 import MockDate from 'mockdate';
 
-jest.mock('../../database');
+jest.mock('../../models/session');
 jest.mock('../../util/stringHelpers');
 jest.mock('../../util/gameInfo');
 
@@ -18,7 +18,7 @@ const mockPlayers = [
 	{ _id: 2, total: 30 },
 	{ _id: 3, total: 20 },
 ];
-db.__setMockData({
+Session.__setMockData({
 	game: mockPlayers,
 });
 const serverID = 'test';
@@ -30,7 +30,6 @@ const members = new Map([
 ]);
 const client = mockClientFactory(members);
 const context = {
-	db,
 	serverID,
 	client,
 };
@@ -45,55 +44,56 @@ afterAll(() => {
 });
 
 describe('Command gameStats', () => {
-	test('is building correctly', () => {
 
+	test('is building correctly', () => {
 		const expectedEmbed = initCustomRichEmbed(serverID, client)
 			.setAuthor(mockGameName)
 			.setTitle('Overall statistics for this game:')
 			.setDescription(
-				'Played by a total of *' + mockPlayers.length + '*  users\n'
-			+ 'Total time played: ' + buildTimeString(100) + '\n'
+				`Played by a total of *${mockPlayers.length}*  users\n`
+				+ `Total time played: ${buildTimeString(100)}`
 			)
 			.addField(
 				'Players:',
-				members.get(1).displayName + ': ' + buildTimeString(mockPlayers[0].total) + '\n'
-			+ members.get(2).displayName + ': ' + buildTimeString(mockPlayers[1].total) + '\n'
-			+ members.get(3).displayName + ': ' + buildTimeString(mockPlayers[2].total) + '\n',
+				`${members.get(1).displayName}: ${buildTimeString(mockPlayers[0].total)}\n`
+				+ `${members.get(2).displayName}: ${buildTimeString(mockPlayers[1].total)}\n`
+				+ `${members.get(3).displayName}: ${buildTimeString(mockPlayers[2].total)}\n`,
 				true
 			)
 			.setURL('https://testurl.com')
 			.setThumbnail('https://testurl.com');
 
+		expect.assertions(1);
 		return expect(gameStats([mockGameName], context)).resolves.toEqual({ embed: expectedEmbed });
 	});
 
 	test('has no Thumbnail and GameUrl if on findGameURL or findGameCover error', () => {
-
 		const expectedEmbed = initCustomRichEmbed(serverID, client)
 			.setAuthor(mockGameName)
 			.setTitle('Overall statistics for this game:')
 			.setDescription(
-				'Played by a total of *' + mockPlayers.length + '*  users\n'
-			+ 'Total time played: ' + buildTimeString(100) + '\n'
+				`Played by a total of *${mockPlayers.length}*  users\n`
+				+ `Total time played: ${buildTimeString(100)}`
 			)
 			.addField(
 				'Players:',
-				members.get(1).displayName + ': ' + buildTimeString(mockPlayers[0].total) + '\n'
-			+ members.get(2).displayName + ': ' + buildTimeString(mockPlayers[1].total) + '\n'
-			+ members.get(3).displayName + ': ' + buildTimeString(mockPlayers[2].total) + '\n',
+				`${members.get(1).displayName}: ${buildTimeString(mockPlayers[0].total)}\n`
+				+ `${members.get(2).displayName}: ${buildTimeString(mockPlayers[1].total)}\n`
+				+ `${members.get(3).displayName}: ${buildTimeString(mockPlayers[2].total)}\n`,
 				true
 			);
 
 		findGameURL.mockImplementationOnce(() => erroringPromise);
 		findGameCover.mockImplementationOnce(() => erroringPromise);
 
+		expect.assertions(1);
 		return expect(gameStats([mockGameName], context)).resolves.toEqual({ embed: expectedEmbed });
 	});
 
 	test('resolves to error message on db error', () => {
+		Session.findPlayerRecordsForGame.mockImplementationOnce(() => erroringPromise);
 
-		db.getGame.mockImplementationOnce(() => erroringPromise);
-
+		expect.assertions(1);
 		return expect(gameStats([members.get(1).displayName], context)).resolves.toBe('`Error: Fail`');
 	});
 });

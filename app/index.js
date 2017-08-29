@@ -1,10 +1,10 @@
 // @flow
 import * as Discord from 'discord.js';
-import DBConnector from './database';
 import Updater from './updater';
 import handleCommand from 'commands';
 import HealthcheckEndpoint from './healthcheckEndpoint';
 import logging from 'util/log';
+import mongoose from 'mongoose';
 
 const logger = logging('playtime:main');
 
@@ -24,13 +24,20 @@ const client = new Discord.Client(
 );
 
 const config = getConfig();
-const db = new DBConnector(config.dbUrl);
-const dbUpdater = new Updater(client, db);
+mongoose.Promise = global.Promise;
+mongoose.connect(config.dbUrl, {
+	useMongoClient: true,
+	socketTimeoutMS: 0,
+	keepAlive: true,
+	reconnectTries: 30,
+});
+
+const dbUpdater = new Updater(client);
 const requiredPermissions = ['SEND_MESSAGES'];
 
 // Healthcheck endpoint, only run in docker environments or with enabled healthchecks
 if (config.healthcheck) {
-	const healthcheckEndpoint = new HealthcheckEndpoint(client, db);
+	const healthcheckEndpoint = new HealthcheckEndpoint(client);
 	healthcheckEndpoint.listen(config.healthcheckPort);
 }
 
@@ -72,7 +79,7 @@ function getConfig(): Config {
 // Message Handling
 client.on('message', (msg) => {
 	if (msg.content.startsWith(config.commandPrefix)) {
-		handleCommand(msg, client, db, config);
+		handleCommand(msg, client, config);
 	}
 });
 
@@ -118,15 +125,17 @@ try {
 function gracefulExit() {
 	logger.debug('(⌒ー⌒)ﾉ');
 
-	dbUpdater.stop(() => {
-		client.destroy();
-		process.exit();
-	});
+	dbUpdater.stop()
+		.then(() => {
+			client.destroy();
+			mongoose.connection.close();
+			process.exit();
+		});
 }
 
 function uncaughtException(err) {
 	// We can't close sessions here since it async
-	logger.error('(╯°□°）╯︵ ┻━┻\n%s', err);
+	logger.error('(╯°□°）╯︵ ┻━┻\n%s\n%s', err, err.stack);
 	// Logout
 	client.destroy();
 }

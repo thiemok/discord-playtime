@@ -18,6 +18,11 @@ const mockGuildMemberFactory = (id) => {
 			status: 'online',
 		},
 		send: jest.fn(() => new Promise((res, rej) => res())),
+		client: {
+			guilds: {
+				keyArray: () => ['MockGuild'],
+			},
+		},
 	};
 };
 

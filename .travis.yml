@@ -21,7 +21,7 @@ script:
 jobs:
   include:
   - stage: coverage
-    script: yarn run coverage-report
+    script: yarn run coverage -- --maxWorkers=2 && cat coverage/lcov.info | node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
   - stage: docker_build
     script: docker build -t $TRAVIS_REPO_SLUG:$TRAVIS_COMMIT -t $TRAVIS_REPO_SLUG:latest .
 

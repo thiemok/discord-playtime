@@ -3,22 +3,24 @@ import express, { type $Application, type $Response, type $Request } from 'expre
 import * as discord from 'discord.js';
 import type { Client } from 'discord.js';
 import logging from 'util/log';
-import type DBConnector from './database';
+import mongoose from 'mongoose';
 
 const logger = logging('playtime:healthcheck');
 
 // $FlowIssue missing in libdef
 const { Constants } = discord;
 
+function dbIsHealthy(): boolean {
+	return mongoose.connection.readyState === 1;
+}
+
 class HealthcheckEndpoint {
 
 	djsClient: Client
-	db: DBConnector
 	endpoint: $Application
 
-	constructor(client: Client, db: DBConnector) {
+	constructor(client: Client) {
 		this.djsClient = client;
-		this.db = db;
 		this.endpoint = express();
 		// $FlowIssue missing in lbdef
 		this.endpoint.get('/health', (req: $Request, res: $Response) => {
@@ -34,10 +36,6 @@ class HealthcheckEndpoint {
 		this.endpoint.listen(port);
 	}
 
-	dbIsHealthy(): boolean {
-		return this.db.connectionStatus() === 0;
-	}
-
 	djsIsHealthy(): boolean {
 		return this.djsClient.status === Constants.Status.READY;
 	}
@@ -47,7 +45,7 @@ class HealthcheckEndpoint {
 			logger.debug('Discord connection died');
 			return false;
 		}
-		if (!this.dbIsHealthy()) {
+		if (!dbIsHealthy()) {
 			logger.debug('DB connection died');
 			return false;
 		}

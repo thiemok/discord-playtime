@@ -5,14 +5,12 @@ import { help, unknownCmd } from 'commands/misc';
 import overview from 'commands/overview';
 import userStats from 'commands/userStats';
 import logging from 'util/log';
-import type DBConnector from '../database';
 import type { Client, GuildMember, Message, TextChannel, StringResolvable } from 'discord.js';
 import type { Config } from '../index';
 
 const logger = logging('playtime:commands');
 
 export type CommandContext = {
-	db: DBConnector,
 	serverID: string,
 	client: Client,
 	member: GuildMember,
@@ -37,12 +35,11 @@ const commands: { [string]: Command } = {
  * @param  {Object} db     The db connector
  * @param  {Object} cfg    The bot config
  */
-const handleCommand = (msg: Message, client: Client, db: DBConnector, cfg: Config) => {
+const handleCommand = (msg: Message, client: Client, cfg: Config) => {
 	logger.debug('Detected command\n%s', msg.content);
 	const args = msg.content.split(/\s+/g);
 
 	const context = {
-		db,
 		serverID: msg.guild.id,
 		client,
 		member: msg.member,

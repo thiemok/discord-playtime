@@ -1,11 +1,10 @@
-/* eslint-env jest */
 import Updater from '../updater';
-import db from '../database';
+import Session from 'models/session';
 import mockClientFactory from '../../__mocks__/discordjs.client';
 import mockGuildMemberFactory from '../../__mocks__/discordjs.guildMember';
 import MockDate from 'mockdate';
 
-jest.mock('../database');
+jest.mock('../models/session');
 
 const members = new Map([
 	[0, mockGuildMemberFactory(0)],
@@ -18,7 +17,7 @@ const client = mockClientFactory(members);
 const startTime = 1434319925275;
 const timeDifference = 90010;
 
-const updater = new Updater(client, db);
+const updater = new Updater(client);
 
 const resetMemberState = () => {
 	members.clear();
@@ -32,7 +31,7 @@ describe('Updater', () => {
 
 	beforeEach(() => {
 		MockDate.set(startTime);
-		db.__setMockData({});
+		Session.__setMockData({});
 	});
 
 	afterEach(() => {
@@ -40,7 +39,7 @@ describe('Updater', () => {
 		resetMemberState();
 	});
 
-	test('creates sessions for already playing members but not idle ones or bots', () => {
+	test('creates sessions for already playing members but not idle ones or bots', async () => {
 		const member0 = members.get(0);
 		const member1 = members.get(1);
 		const member2 = members.get(2);
@@ -53,42 +52,37 @@ describe('Updater', () => {
 		member3.presence.game = { name: 'MockGame' };
 		const expectedSession1 = {
 			game: 'MockGame',
-			startDate: new Date(),
-			member: member1,
-			servers: ['MockServer'],
+			duration: timeDifference,
+			ended: new Date(Date.now() + timeDifference),
+			uid: member1.id,
+			guilds: ['MockGuild'],
 		};
-		const expectedSession2 = Object.assign({}, expectedSession1, { member: member3 });
+		const expectedSession2 = Object.assign({}, expectedSession1, { uid: member3.id });
 
 		updater.start();
-		MockDate.set(startTime + timeDifference);
+		MockDate.set(Date.now() + timeDifference);
 
-		new Promise((resolve, reject) => {
-			updater.stop(resolve);
-		}).then(() => {
-			expect(db.__getMockData().sessions).toEqual([expectedSession1, expectedSession2]);
-		}).catch((e) => {
-			// Fail by default here
-			/* eslint-disable no-undef */
-			fail('Got error when there should not have been one:\n' + e);
-			/* eslint-enable no-undef */
-		});
+		expect.assertions(1);
+		await updater.stop();
+		expect(Session.__getMockData().sessions).toEqual([expectedSession1, expectedSession2]);
 	});
 
-	test('closes session on presence update', () => {
+	test('closes session on presence update', async () => {
 		const member1 = members.get(1);
 		const member3 = members.get(3);
 		member1.presence.game = { name: 'MockGame' };
 		member3.presence.game = { name: 'MockGame' };
 		const expectedSession1 = {
 			game: 'MockGame',
-			startDate: new Date(),
-			member: member1,
-			servers: ['MockServer'],
+			duration: timeDifference,
+			ended: new Date(Date.now() + timeDifference),
+			uid: member1.id,
+			guilds: ['MockGuild'],
 		};
-		const expectedSession2 = Object.assign({}, expectedSession1, { member: member3 });
+		const expectedSession2 = Object.assign({}, expectedSession1, { uid: member3.id });
 
 		updater.start();
-		MockDate.set(startTime + timeDifference);
+		MockDate.set(Date.now() + timeDifference);
 
 		const newMember1 = Object.assign({}, member1, { presence: {} });
 		const newMember3 = Object.assign({}, member3, { presence: {} });
@@ -96,147 +90,119 @@ describe('Updater', () => {
 		updater.presenceUpdated(member1, newMember1);
 		updater.presenceUpdated(member3, newMember3);
 
-		new Promise((resolve, reject) => {
-			updater.stop(resolve);
-		}).then(() => {
-			expect(db.__getMockData().sessions).toEqual([expectedSession1, expectedSession2]);
-		}).catch((e) => {
-			// Fail by default here
-			/* eslint-disable no-undef */
-			fail('Got error when there should not have been one:\n' + e);
-			/* eslint-enable no-undef */
-		});
+		expect.assertions(1);
+		await updater.stop();
+		expect(Session.__getMockData().sessions).toEqual([expectedSession1, expectedSession2]);
 	});
 
-	test('closes session and opens new on game change', () => {
+	test('closes session and opens new on game change', async () => {
 		const member1 = members.get(1);
 		const member3 = members.get(3);
 		member1.presence.game = { name: 'MockGame' };
 		member3.presence.game = { name: 'MockGame' };
 		const expectedSession1 = {
 			game: 'MockGame',
-			startDate: new Date(),
-			member: member1,
-			servers: ['MockServer'],
+			duration: timeDifference,
+			ended: new Date(Date.now() + timeDifference),
+			uid: member1.id,
+			guilds: ['MockGuild'],
 		};
-		const expectedSession2 = Object.assign({}, expectedSession1, { member: member3 });
+		const expectedSession2 = Object.assign({}, expectedSession1, { uid: member3.id });
 
 		updater.start();
-		MockDate.set(startTime + timeDifference);
+		MockDate.set(Date.now() + timeDifference);
 
 		const newMember1 = Object.assign({}, member1, { presence: { game: { name: 'MockGame2' } } });
 		const newMember3 = Object.assign({}, member3, { presence: { game: { name: 'MockGame2' } } });
 		const expectedSession3 = {
 			game: 'MockGame2',
-			startDate: new Date(),
-			member: newMember1,
-			servers: ['MockServer'],
+			duration: timeDifference,
+			ended: new Date(Date.now() + timeDifference),
+			uid: member1.id,
+			guilds: ['MockGuild'],
 		};
-		const expectedSession4 = Object.assign({}, expectedSession3, { member: newMember3 });
+		const expectedSession4 = Object.assign({}, expectedSession3, { uid: newMember3.id });
 
 		updater.presenceUpdated(member1, newMember1);
 		updater.presenceUpdated(member3, newMember3);
 
-		new Promise((resolve, reject) => {
-			updater.stop(resolve);
-		}).then(() => {
-			expect(db.__getMockData().sessions).toEqual([
-				expectedSession1,
-				expectedSession2,
-				expectedSession3,
-				expectedSession4,
-			]);
-		}).catch((e) => {
-			// Fail by default here
-			/* eslint-disable no-undef */
-			fail('Got error when there should not have been one:\n' + e);
-			/* eslint-enable no-undef */
-		});
+		MockDate.set(Date.now() + timeDifference);
+
+		expect.assertions(1);
+		await updater.stop();
+		expect(Session.__getMockData().sessions).toEqual([
+			expectedSession1,
+			expectedSession2,
+			expectedSession3,
+			expectedSession4,
+		]);
 	});
 
-	test('closes session on member going afk', (done) => {
+	test('closes session on member going afk', async () => {
 		const member1 = members.get(1);
 		member1.presence.game = { name: 'MockGame' };
 		const expectedSession1 = {
 			game: 'MockGame',
-			startDate: new Date(),
-			member: member1,
-			servers: ['MockServer'],
+			duration: timeDifference,
+			ended: new Date(Date.now() + timeDifference),
+			uid: member1.id,
+			guilds: ['MockGuild'],
 		};
 
 		updater.start();
-		MockDate.set(startTime + timeDifference);
+		MockDate.set(Date.now() + timeDifference);
 
 		const newMember1 = Object.assign({}, member1, { presence: { status: 'idle' } });
 
 		updater.presenceUpdated(member1, newMember1);
-		expect(db.__getMockData().sessions).toEqual([expectedSession1]);
-		new Promise((resolve, reject) => {
-			updater.stop(resolve);
-		}).then(() => {
-			expect.assertions(1);
-			done();
-		}).catch((e) => {
-			// Fail by default here
-			/* eslint-disable no-undef */
-			fail('Got error when there should not have been one:\n' + e);
-			/* eslint-enable no-undef */
-		});
+
+		expect.assertions(2);
+		expect(Session.__getMockData().sessions).toEqual([expectedSession1]);
+		await updater.stop();
+		expect(Session.__getMockData().sessions).toEqual([expectedSession1]);
 	});
 
-	test('closes session on member going offline', (done) => {
+	test('closes session on member going offline', async () => {
 		const member1 = members.get(1);
 		member1.presence.game = { name: 'MockGame' };
 		const expectedSession1 = {
 			game: 'MockGame',
-			startDate: new Date(),
-			member: member1,
-			servers: ['MockServer'],
+			duration: timeDifference,
+			ended: new Date(Date.now() + timeDifference),
+			uid: member1.id,
+			guilds: ['MockGuild'],
 		};
 
 		updater.start();
-		MockDate.set(startTime + timeDifference);
+		MockDate.set(Date.now() + timeDifference);
 
 		const newMember1 = Object.assign({}, member1, { presence: { status: 'offline' } });
 
 		updater.presenceUpdated(member1, newMember1);
-		expect(db.__getMockData().sessions).toEqual([expectedSession1]);
-		new Promise((resolve, reject) => {
-			updater.stop(resolve);
-		}).then(() => {
-			expect.assertions(1);
-			done();
-		}).catch((e) => {
-			// Fail by default here
-			/* eslint-disable no-undef */
-			fail('Got error when there should not have been one:\n' + e);
-			/* eslint-enable no-undef */
-		});
+
+		expect.assertions(2);
+		expect(Session.__getMockData().sessions).toEqual([expectedSession1]);
+		await updater.stop();
+		expect(Session.__getMockData().sessions).toEqual([expectedSession1]);
 	});
 
-	test('does not open a new session for updated on already tracked users', () => {
+	test('does not open a new session for updated on already tracked users', async () => {
 		const member1 = members.get(1);
 		member1.presence.game = { name: 'MockGame' };
 		const expectedSession1 = {
 			game: 'MockGame',
-			startDate: new Date(),
-			member: member1,
-			servers: ['MockServer'],
+			duration: timeDifference,
+			ended: new Date(Date.now() + timeDifference),
+			uid: member1.id,
+			guilds: ['MockGuild'],
 		};
 
 		updater.start();
-		MockDate.set(startTime + timeDifference);
+		MockDate.set(Date.now() + timeDifference);
 		updater.presenceUpdated(member1, member1);
 
-		new Promise((resolve, reject) => {
-			updater.stop(resolve);
-		}).then(() => {
-			expect(db.__getMockData().sessions).toEqual([expectedSession1]);
-		}).catch((e) => {
-			// Fail by default here
-			/* eslint-disable no-undef */
-			fail('Got error when there should not have been one:\n' + e);
-			/* eslint-enable no-undef */
-		});
+		expect.assertions(1);
+		await updater.stop();
+		expect(Session.__getMockData().sessions).toEqual([expectedSession1]);
 	});
 });

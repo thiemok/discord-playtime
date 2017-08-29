@@ -1,10 +1,10 @@
 /* eslint-env jest */
-import handleCommand from '../index';
-import exportJSON from '../export';
-import gameStats from '../gameStats';
-import { help, unknownCmd } from '../misc';
-import overview from '../overview';
-import userStats from '../userStats';
+import handleCommand from 'commands';
+import exportJSON from 'commands/export';
+import gameStats from 'commands/gameStats';
+import { help, unknownCmd } from 'commands/misc';
+import overview from 'commands/overview';
+import userStats from 'commands/userStats';
 
 jest.mock('../export');
 jest.mock('../gameStats');
@@ -39,24 +39,22 @@ beforeEach(() => {
 });
 
 describe('Command matching', () => {
-	test('matches overview', () => {
 
+	test('matches overview', () => {
 		testMessage.content += 'Overview';
-		handleCommand(testMessage, {}, {}, testCfg);
+		handleCommand(testMessage, {}, testCfg);
 
 		expect(overview).toBeCalled();
 	});
 
 	test('matches userStats correctly', () => {
-
 		testMessage.content += 'UserStats testUser';
-		handleCommand(testMessage, {}, {}, testCfg);
+		handleCommand(testMessage, {}, testCfg);
 
 		expect(userStats).lastCalledWith(
 			['testUser'],
 			{
 				client: {},
-				db: {},
 				cfg: testCfg,
 				member: testMessage.member,
 				serverID: testMessage.guild.id,
@@ -65,15 +63,13 @@ describe('Command matching', () => {
 	});
 
 	test('matches gameStats correctly', () => {
-
 		testMessage.content += 'GameStats testGame';
-		handleCommand(testMessage, {}, {}, testCfg);
+		handleCommand(testMessage, {}, testCfg);
 
 		expect(gameStats).lastCalledWith(
 			['testGame'],
 			{
 				client: {},
-				db: {},
 				cfg: testCfg,
 				member: testMessage.member,
 				serverID: testMessage.guild.id,
@@ -82,34 +78,30 @@ describe('Command matching', () => {
 	});
 
 	test('matches help', () => {
-
 		testMessage.content += 'Help';
-		handleCommand(testMessage, {}, {}, testCfg);
+		handleCommand(testMessage, {}, testCfg);
 
 		expect(help).toBeCalled();
 	});
 
 	test('matches ExportJSON', () => {
-
 		testMessage.content += 'ExportJSON';
-		handleCommand(testMessage, {}, {}, testCfg);
+		handleCommand(testMessage, {}, testCfg);
 
 		expect(exportJSON).toBeCalled();
 	});
 
 	test('matches unknownCmd on unknown commands', () => {
-
 		testMessage.content += 'UnknownMockCommand';
-		handleCommand(testMessage, {}, {}, testCfg);
+		handleCommand(testMessage, {}, testCfg);
 
 		expect(unknownCmd).toBeCalled();
 	});
 
 	test('logs errors from executed commands', () => {
-
 		testMessage.content += 'UnknownMockCommand';
 		unknownCmd.mockImplementationOnce(() => Promise.reject('Expected fail'));
-		handleCommand(testMessage, {}, {}, testCfg);
+		handleCommand(testMessage, {}, testCfg);
 
 		expect(unknownCmd).toBeCalled();
 	});

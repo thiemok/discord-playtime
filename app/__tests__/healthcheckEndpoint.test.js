@@ -1,34 +1,42 @@
 /* eslint-env jest */
 import HealthcheckEndpoint from '../healthcheckEndpoint';
 import { Constants } from 'discord.js';
+import mongoose from 'mongoose';
 
 const mockClient = {
 	status: Constants.Status.READY,
 };
-const mockDB = {
-	connectionStatus: jest.fn(() => 0),
-};
+
 const mockResponse = {
 	status: jest.fn(() => ({
 		json: jest.fn(() => {}),
 	})),
 };
+
 let mockGetCallback;
 const mockGetFn = jest.fn((path, callback) => {
 	mockGetCallback = callback;
 });
+
 jest.mock('express', () => (
 	() => ({
 		get: mockGetFn,
 	})
 ));
 
-const endpoint = new HealthcheckEndpoint(mockClient, mockDB);
+jest.mock('mongoose', () => ({
+	connection: {
+		readyState: 1,
+	},
+}));
+
+const endpoint = new HealthcheckEndpoint(mockClient);
 
 describe('HealthcheckEndpoint', () => {
 
 	afterEach(() => {
 		mockClient.status = Constants.Status.READY;
+		mongoose.connection.readyState = 1;
 		mockResponse.status.mockClear();
 	});
 
@@ -40,8 +48,7 @@ describe('HealthcheckEndpoint', () => {
 	});
 
 	test('responds with http 500 on non READY db connection', () => {
-		mockDB.connectionStatus.mockImplementationOnce(() => 1);
-		mockDB.connectionStatus.mockImplementationOnce(() => 1);
+		mongoose.connection.readyState = 0;
 		expect(endpoint.isHealthy()).toBeFalsy();
 		mockGetCallback(undefined, mockResponse);
 		expect(mockResponse.status).toBeCalledWith(500);

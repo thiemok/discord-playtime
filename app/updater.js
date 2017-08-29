@@ -1,12 +1,11 @@
 // @flow
-import parallel from 'async/parallel';
 import logging from 'util/log';
 import type { GuildMember, Client } from 'discord.js';
-import type DBConnector from './database';
+import Session from 'models/session';
 
 const logger = logging('playtime:updater');
 
-export class Session {
+export class ActiveSession {
 
 	game: string
 	startDate: Date
@@ -23,12 +22,10 @@ export class Session {
 
 class Updater {
 
-	db: DBConnector
 	client: Client
 	activeSessions: Map<string, Session>
 
-	constructor(client: Client, db: DBConnector) {
-		this.db = db;
+	constructor(client: Client) {
 		this.client = client;
 		this.activeSessions = new Map();
 	}
@@ -77,25 +74,32 @@ class Updater {
 					}
 				}
 			});
-			const session = new Session(member.presence.game.name, member, servers);
+			const session = new ActiveSession(member.presence.game.name, member, servers);
 			this.activeSessions.set(member.id, session);
 		}
 	}
 
 	// Closes, if needed or forced, the session of the given member and writes it to the db
-	closeSession(member: GuildMember, callback: () => mixed = () => {}, force: boolean = false) {
+	async closeSession(member: GuildMember, force: boolean = false): Promise<> {
 		// Check if is forced or needs closing
 		if (force || this.needsClosing(member)) {
 			logger.debug('Closing session for %s', member.displayName);
 			// Write session to db
 			const openSession = this.activeSessions.get(member.id);
 			if (openSession != null) {
-				// $FlowFixMe WTF flow? this is clearly the right type...
-				this.db.insertSession(openSession, callback);
 
 				this.activeSessions.delete(member.id);
+
+				return Session.create({
+					uid: openSession.member.id,
+					game: openSession.game,
+					duration: Date.now() - openSession.startDate.getTime(),
+					ended: new Date(),
+					guilds: openSession.member.client.guilds.keyArray(),
+				});
 			}
 		}
+		return Promise.resolve();
 	}
 
 	// Start tracking users presences
@@ -109,22 +113,20 @@ class Updater {
 		});
 
 		// Act on Users changeing state
-		this.client.on('presenceUpdate', this.presenceUpdated);
+		this.client.on('presenceUpdate', this.presenceUpdated.bind(this));
 	}
 
 	// Stop tracking user presences
-	stop(_callback: ?() => mixed) {
+	async stop() {
 		logger.debug('Stopping tracking');
 		// Remove event listener
 		this.client.removeListener('presenceUpdated', this.presenceUpdated);
 		// Close all open Sessions
 		const tasks = [];
 		this.activeSessions.forEach((session) => {
-			tasks.push((callback) => {
-				this.closeSession(session.member, callback, true);
-			});
+			tasks.push(this.closeSession(session.member, true));
 		});
-		parallel(tasks, _callback);
+		return Promise.all(tasks);
 	}
 }
 

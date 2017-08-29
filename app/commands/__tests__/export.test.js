@@ -1,10 +1,10 @@
 /* eslint-env jest */
-import exportJSON from '../export';
-import db from '../../database';
+import exportJSON from 'commands/export';
+import Session from 'models/session';
 import mockClientFactory from '../../../__mocks__/discordjs.client';
 import mockGuildMemberFactory from '../../../__mocks__/discordjs.guildMember';
 
-jest.mock('../../database');
+jest.mock('../../models/session');
 
 const mockData = {
 	test1: 1,
@@ -13,13 +13,12 @@ const mockData = {
 		id: 3,
 	},
 };
-db.__setMockData(mockData);
+Session.__setMockData(mockData);
 const serverID = 'test';
 const members = new Map();
 const member = mockGuildMemberFactory(1);
 const client = mockClientFactory(members);
 const context = {
-	db,
 	serverID,
 	client,
 	member,
@@ -31,58 +30,45 @@ beforeEach(() => {
 });
 
 describe('Command exportJSON', () => {
-	test('resolves correctly and sends file', (done) => {
+
+	test('resolves correctly and sends file', async () => {
 		const expectedResolution = "psst I'm sending you a private message";
 
-		exportJSON([], context)
-			.then((res) => {
-				expect(res).toBe(expectedResolution);
-				expect(member.send).lastCalledWith(
-					[
-						Buffer.from(JSON.stringify(db.__getMockData(), null, '\t')),
-						'export.JSON',
-						'Data export finished',
-					]
-				);
-				done();
-			}).catch((error) => {
-			// Fail by default here
-			/* eslint-disable no-undef */
-				fail('Got error when there should not have been one:\n' + error);
-				/* eslint-enable no-undef */
-				done();
-			});
+		expect.assertions(2);
+		const data = await exportJSON([], context);
+		expect(data).toBe(expectedResolution);
+		expect(member.send).lastCalledWith(
+			[
+				Buffer.from(JSON.stringify(Session.__getMockData(), null, '\t')),
+				'export.JSON',
+				'Data export finished',
+			]
+		);
 	});
 
-	test('resolves to insufficient permissions message for non administrators and does not send a file', (done) => {
+	test('resolves to insufficient permissions message for non administrators and does not send a file', async () => {
 		const expectedResolution = '`You have insufficient permissions, only Admins can export`';
 		member.permissions.has.mockImplementationOnce(() => false);
 
-		exportJSON([], context)
-			.then((res) => {
-				expect(res).toBe(expectedResolution);
-				expect(member.send).not.toBeCalled();
-				done();
-			}).catch((error) => {
-			// Fail by default here
-			/* eslint-disable no-undef */
-				fail('Got error when there should not have been one:\n' + error);
-				/* eslint-enable no-undef */
-				done();
-			});
+		expect.assertions(2);
+		const data = await exportJSON([], context);
+		expect(data).toBe(expectedResolution);
+		expect(member.send).not.toBeCalled();
 	});
 
 	test('resolves to error msg on sendFile error', () => {
 		const expectedResolution = '`Error: Fail`';
 		member.send.mockImplementationOnce(() => erroringPromise);
 
+		expect.assertions(1);
 		return expect(exportJSON([], context)).resolves.toBe(expectedResolution);
 	});
 
 	test('resolves to error msg on db error', () => {
 		const expectedResolution = '`Error: Fail`';
-		db.getAllDataForServer.mockImplementationOnce(() => erroringPromise);
+		Session.allSessionsForGuild.mockImplementationOnce(() => erroringPromise);
 
+		expect.assertions(1);
 		return expect(exportJSON([], context)).resolves.toBe(expectedResolution);
 	});
 });

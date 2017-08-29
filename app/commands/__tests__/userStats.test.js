@@ -1,6 +1,6 @@
 /* eslint-env jest */
-import userStats from '../userStats';
-import db from '../../database';
+import userStats from 'commands/userStats';
+import Session from 'models/session';
 import mockClientFactory from '../../../__mocks__/discordjs.client';
 import mockGuildMemberFactory from '../../../__mocks__/discordjs.guildMember';
 import initCustomRichEmbed from 'util/embedHelpers';
@@ -8,7 +8,7 @@ import { buildTimeString, buildRichGameString } from 'util/stringHelpers';
 import { Collection } from 'discord.js';
 import MockDate from 'mockdate';
 
-jest.mock('../../database');
+jest.mock('../../models/session');
 jest.mock('../../util/stringHelpers');
 
 const mockGames = [
@@ -16,7 +16,7 @@ const mockGames = [
 	{ _id: 'Game2', total: 30 },
 	{ _id: 'Game3', total: 20 },
 ];
-db.__setMockData({
+Session.__setMockData({
 	gamesForPlayer: mockGames,
 });
 const serverID = 'test';
@@ -26,7 +26,6 @@ const members = new Collection([
 ]);
 const client = mockClientFactory(members);
 const context = {
-	db,
 	serverID,
 	client,
 };
@@ -41,8 +40,8 @@ afterAll(() => {
 });
 
 describe('Command userStats', () => {
-	test('is building correctly', () => {
 
+	test('is building correctly', () => {
 		const testMember = members.get(1);
 		const expectedEmbed = initCustomRichEmbed(serverID, client)
 			.setAuthor(testMember.displayName)
@@ -60,6 +59,7 @@ describe('Command userStats', () => {
 				true
 			);
 
+		expect.assertions(1);
 		return expect(userStats([members.get(1).displayName], context)).resolves.toEqual({ embed: expectedEmbed });
 	});
 
@@ -67,20 +67,21 @@ describe('Command userStats', () => {
 		const unknownUser = 'Anonymous';
 		const unknownUserErrorMsg = '`I could not find ' + unknownUser + ' please use an existing username`';
 
+		expect.assertions(1);
 		return expect(userStats([unknownUser], context)).resolves.toBe(unknownUserErrorMsg);
 	});
 
 	test('resolves to error message on db error', () => {
+		Session.findGameRecordsForPlayer.mockImplementationOnce(() => erroringPromise);
 
-		db.getGamesforPlayer.mockImplementationOnce(() => erroringPromise);
-
+		expect.assertions(1);
 		return expect(userStats([members.get(1).displayName], context)).resolves.toBe('`Error: Fail`');
 	});
 
 	test('resolves to error message on buildRichGameString error', () => {
-
 		buildRichGameString.mockImplementationOnce(() => erroringPromise);
 
+		expect.assertions(1);
 		return expect(userStats([members.get(1).displayName], context)).resolves.toBe('`Error: Fail`');
 	});
 });

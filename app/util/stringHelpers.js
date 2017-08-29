@@ -1,6 +1,6 @@
 // @flow
 import { findGameURL } from 'util/gameInfo';
-import type { GameRecord } from '../database';
+import type { GameRecord } from 'models/session';
 
 export const buildTimeString = (duration: number): string => {
 	const totalMinutes = (duration / 1000) / 60;

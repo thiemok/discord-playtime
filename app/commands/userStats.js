@@ -1,5 +1,5 @@
 // @flow
-import { asyncify, parallel } from 'async';
+import Session from 'models/session';
 import initCustomRichEmbed from 'util/embedHelpers';
 import { buildTimeString, buildRichGameString } from 'util/stringHelpers';
 import logging from 'util/log';
@@ -16,7 +16,7 @@ const logger = logging('playtime:commands:userStats');
  */
 const userStats = (argv: Array<string>, context: CommandContext): Promise<StringResolvable> => {
 	logger.debug('Running cmd userStats with args: %o', argv);
-	const { db, serverID, client } = context;
+	const { serverID, client } = context;
 	const name = argv.join(' ');
 	const pResult = new Promise((resolve, reject) => {
 
@@ -27,52 +27,50 @@ const userStats = (argv: Array<string>, context: CommandContext): Promise<String
 		if (member != null) {
 
 			// Get user data
-			const pUser = db.getGamesforPlayer(member.id);
-			pUser.then((data) => {
+			Session.findGameRecordsForPlayer(member.id)
+				.then((data) => {
+					const embed = initCustomRichEmbed(serverID, client);
 
-				const embed = initCustomRichEmbed(serverID, client);
+					// Tasks that need to be run before the embed can be build
+					const tasks = [];
 
-				// Tasks that need to be run before the embed can be build
-				const tasks = [];
+					// Calculate total time played and build game titles
+					let totalPlayed: number = 0;
+					data.forEach((game) => {
+						totalPlayed += game.total;
+						tasks.push(buildRichGameString(game));
+					});
 
-				// Calculate total time played and build game titles
-				let totalPlayed: number = 0;
-				data.forEach((game) => {
-					totalPlayed += game.total;
-					tasks.push(asyncify(() => buildRichGameString(game)));
-				});
+					Promise.all(tasks)
+						.then((results) => {
+							// Build games message
+							let gamesMsg: string = '';
+							results.forEach((gameEntry) => {
+								gamesMsg += gameEntry + '\n';
+							});
 
-				parallel(tasks, (err, results) => {
-					if (err) {
-						resolve('`' + err + '`');
-					} else {
-						// Build games message
-						let gamesMsg: string = '';
-						results.forEach((gameEntry) => {
-							gamesMsg += gameEntry + '\n';
+							// Build general stats
+							const generalStatsMsg: string =
+								`Played a total of *${data.length}* different games\n`
+								+ `Total time played: ${buildTimeString(totalPlayed)}\n`;
+
+							// Build message embed
+							embed.setAuthor(name);
+							embed.setThumbnail(member.user.avatarURL);
+							embed.setTitle('Overall statistics for this user:');
+							embed.setDescription(generalStatsMsg);
+							embed.addField('Games:', gamesMsg, true);
+
+							resolve({ embed: embed });
+						})
+						.catch((err) => {
+							resolve(`\`Error: ${err}\``);
 						});
-
-						// Build general stats
-						let generalStatsMsg: string = 'Played a total of *' + data.length + '* different games';
-						generalStatsMsg += '\n';
-						generalStatsMsg += 'Total time played: ' + buildTimeString(totalPlayed);
-						generalStatsMsg += '\n';
-
-						// Build message embed
-						embed.setAuthor(name);
-						embed.setThumbnail(member.user.avatarURL);
-						embed.setTitle('Overall statistics for this user:');
-						embed.setDescription(generalStatsMsg);
-						embed.addField('Games:', gamesMsg, true);
-
-						resolve({ embed: embed });
-					}
+				}).catch((err) => {
+					resolve(`\`Error: ${err}\``);
 				});
-			}).catch((err) => {
-				resolve('`Error: ' + err + '`');
-			});
 		} else {
-			resolve('`I could not find ' + name + ' please use an existing username`');
+			resolve(`\`I could not find ${name} please use an existing username\``);
 		}
 	});
 	return pResult;
