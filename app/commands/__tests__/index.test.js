@@ -5,6 +5,8 @@ import gameStats from 'commands/gameStats';
 import { help, unknownCmd } from 'commands/misc';
 import overview from 'commands/overview';
 import userStats from 'commands/userStats';
+import mockGuildMemberFactory from '../../../__mocks__/discordjs.guildMember';
+import mockClientFactory from '../../../__mocks__/discordjs.client';
 
 jest.mock('../export');
 jest.mock('../gameStats');
@@ -22,6 +24,9 @@ userStats.mockImplementation(() => Promise.resolve());
 const testMessage = {
 	guild: {
 		id: 0,
+		members: {
+			get: id => mockGuildMemberFactory(id),
+		},
 	},
 	member: {},
 	content: '',
@@ -32,6 +37,7 @@ const testMessage = {
 const testCfg = {
 	commandPrefix: '!test',
 };
+const testClient = mockClientFactory();
 
 beforeEach(() => {
 	testMessage.content = testCfg.commandPrefix;
@@ -42,20 +48,21 @@ describe('Command matching', () => {
 
 	test('matches overview', () => {
 		testMessage.content += 'Overview';
-		handleCommand(testMessage, {}, testCfg);
+		handleCommand(testMessage, testClient, testCfg);
 
 		expect(overview).toBeCalled();
 	});
 
 	test('matches userStats correctly', () => {
 		testMessage.content += 'UserStats testUser';
-		handleCommand(testMessage, {}, testCfg);
+		handleCommand(testMessage, testClient, testCfg);
 
 		expect(userStats).lastCalledWith(
 			['testUser'],
 			{
-				client: {},
+				client: testClient,
 				cfg: testCfg,
+				color: 0,
 				member: testMessage.member,
 				serverID: testMessage.guild.id,
 			}
@@ -64,13 +71,14 @@ describe('Command matching', () => {
 
 	test('matches gameStats correctly', () => {
 		testMessage.content += 'GameStats testGame';
-		handleCommand(testMessage, {}, testCfg);
+		handleCommand(testMessage, testClient, testCfg);
 
 		expect(gameStats).lastCalledWith(
 			['testGame'],
 			{
-				client: {},
+				client: testClient,
 				cfg: testCfg,
+				color: 0,
 				member: testMessage.member,
 				serverID: testMessage.guild.id,
 			}
@@ -79,21 +87,21 @@ describe('Command matching', () => {
 
 	test('matches help', () => {
 		testMessage.content += 'Help';
-		handleCommand(testMessage, {}, testCfg);
+		handleCommand(testMessage, testClient, testCfg);
 
 		expect(help).toBeCalled();
 	});
 
 	test('matches ExportJSON', () => {
 		testMessage.content += 'ExportJSON';
-		handleCommand(testMessage, {}, testCfg);
+		handleCommand(testMessage, testClient, testCfg);
 
 		expect(exportJSON).toBeCalled();
 	});
 
 	test('matches unknownCmd on unknown commands', () => {
 		testMessage.content += 'UnknownMockCommand';
-		handleCommand(testMessage, {}, testCfg);
+		handleCommand(testMessage, testClient, testCfg);
 
 		expect(unknownCmd).toBeCalled();
 	});
@@ -101,7 +109,7 @@ describe('Command matching', () => {
 	test('logs errors from executed commands', () => {
 		testMessage.content += 'UnknownMockCommand';
 		unknownCmd.mockImplementationOnce(() => Promise.reject('Expected fail'));
-		handleCommand(testMessage, {}, testCfg);
+		handleCommand(testMessage, testClient, testCfg);
 
 		expect(unknownCmd).toBeCalled();
 	});

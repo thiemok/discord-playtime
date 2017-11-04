@@ -25,8 +25,7 @@ describe('StringHelpers', () => {
 		const testGame = { _id: 'TestGame', total: 90010000 };
 		const testGameURL = 'https://' + testGame._id + '.game';
 		const expectedGameString = '**[' + testGame._id + ']('
-		+ testGameURL + ')**: '
-		+ stringHelpers.buildTimeString(testGame.total);
+		+ testGameURL + ')**';
 		findGameURL.mockImplementationOnce(game => Promise.resolve(testGameURL));
 
 		expect(stringHelpers.buildRichGameString(testGame)).resolves.toBe(expectedGameString);
@@ -34,10 +33,37 @@ describe('StringHelpers', () => {
 
 	test('buildRichGameString works correctly for game not found in db', () => {
 		const testGame = { _id: 'TestGame', total: 90010000 };
-		const expectedGameString = '**' + testGame._id + '**: '
-		+ stringHelpers.buildTimeString(testGame.total);
+		const expectedGameString = '**' + testGame._id + '**';
 		findGameURL.mockImplementationOnce(game => Promise.reject());
 
 		expect(stringHelpers.buildRichGameString(testGame)).resolves.toBe(expectedGameString);
+	});
+
+	test('splitAtLineBreakPoint splits before last [\\n\\r\\u2028\\u2029]', () => {
+		const testString = 'Lorem \nipsum\ndolor sit amet';
+
+		expect(stringHelpers.splitAtLineBreakPoint(testString, 15))
+			.toEqual(['Lorem \nipsum', 'dolor sit amet']);
+	});
+
+	test('splitAtLineBreakPoint splits before last [\\n\\r\\u2028\\u2029] and removes leading whitespace', () => {
+		const testString = 'Lorem\n ipsum\n dolor sit amet';
+
+		expect(stringHelpers.splitAtLineBreakPoint(testString, 15))
+			.toEqual(['Lorem\n ipsum', 'dolor sit amet']);
+	});
+
+	test('splitAtLineBreakPoint splits after last \\s', () => {
+		const testString = 'Lorem ipsum dolor sit amet';
+
+		expect(stringHelpers.splitAtLineBreakPoint(testString, 15))
+			.toEqual(['Lorem ipsum', 'dolor sit amet']);
+	});
+
+	test('splitAtLineBreakPoint splits at desired lineLength', () => {
+		const testString = 'Loremipsumdolor sit amet';
+
+		expect(stringHelpers.splitAtLineBreakPoint(testString, 10))
+			.toEqual(['Loremipsum', 'dolor sit amet']);
 	});
 });

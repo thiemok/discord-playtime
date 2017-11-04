@@ -4,16 +4,16 @@
   "description": "Discord Bot that collects playtime statistics",
   "main": "index.js",
   "scripts": {
-    "build": "babel app -d build --ignore __mocks__,__tests__",
+    "build": "node_modules/babel-cli/bin/babel.js app -d build --ignore __mocks__,__tests__",
     "coverage": "yarn run test -- --coverage",
     "coverage-report": "yarn run coverage && cat coverage/lcov.info | node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
     "test": "node_modules/jest/bin/jest.js",
     "test-watch": "node_modules/jest/bin/jest.js --watchAll",
     "start": "node index.js",
     "lint": "node_modules/eslint/bin/eslint.js --cache --format=node_modules/eslint-formatter-pretty .",
-    "lint-fix": "npm run lint -- --fix",
+    "lint-fix": "yarn run lint -- --fix",
     "flow": "node_modules/flow-bin/cli.js",
-    "flow-typed": "rimraf flow-typed/npm && flow-typed install --overwrite || true"
+    "flow-typed": "node_modules/rimraf/bin.js flow-typed/npm && node_modules/flow-typed/dist/cli.js install --overwrite || true"
   },
   "author": "thiemok",
   "license": "GPL-3.0",

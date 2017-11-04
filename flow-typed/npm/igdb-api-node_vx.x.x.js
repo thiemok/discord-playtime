@@ -1,4 +1,4 @@
-// flow-typed signature: d29aa585d19036e308ba7f5ecf245ffa
+// flow-typed signature: 150d43986a8301f94009737f2bb6f7c7
 // flow-typed version: <<STUB>>/igdb-api-node_v^3.0.1/flow_v0.52.0
 
 /**
@@ -50,6 +50,10 @@ declare module 'igdb-api-node/lib/request-endpoint' {
   declare module.exports: any;
 }
 
+declare module 'igdb-api-node/lib/request-promise' {
+  declare module.exports: any;
+}
+
 // Filename aliases
 declare module 'igdb-api-node/configuration.js' {
   declare module.exports: $Exports<'igdb-api-node/configuration'>;
@@ -71,4 +75,7 @@ declare module 'igdb-api-node/lib/perform-request.js' {
 }
 declare module 'igdb-api-node/lib/request-endpoint.js' {
   declare module.exports: $Exports<'igdb-api-node/lib/request-endpoint'>;
+}
+declare module 'igdb-api-node/lib/request-promise.js' {
+  declare module.exports: $Exports<'igdb-api-node/lib/request-promise'>;
 }

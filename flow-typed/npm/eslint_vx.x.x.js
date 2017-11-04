@@ -1,4 +1,4 @@
-// flow-typed signature: 13783cef5eac55d2b62f91d68add1814
+// flow-typed signature: 057dd9984c07227ea3ab6920764d79d6
 // flow-typed version: <<STUB>>/eslint_v^4.3.0/flow_v0.52.0
 
 /**
@@ -1242,6 +1242,10 @@ declare module 'eslint/lib/testers/rule-tester' {
   declare module.exports: any;
 }
 
+declare module 'eslint/lib/testers/test-parser' {
+  declare module.exports: any;
+}
+
 declare module 'eslint/lib/timing' {
   declare module.exports: any;
 }
@@ -2281,6 +2285,9 @@ declare module 'eslint/lib/testers/event-generator-tester.js' {
 }
 declare module 'eslint/lib/testers/rule-tester.js' {
   declare module.exports: $Exports<'eslint/lib/testers/rule-tester'>;
+}
+declare module 'eslint/lib/testers/test-parser.js' {
+  declare module.exports: $Exports<'eslint/lib/testers/test-parser'>;
 }
 declare module 'eslint/lib/timing.js' {
   declare module.exports: $Exports<'eslint/lib/timing'>;

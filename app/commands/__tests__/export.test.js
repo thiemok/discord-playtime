@@ -36,14 +36,14 @@ describe('Command exportJSON', () => {
 
 		expect.assertions(2);
 		const data = await exportJSON([], context);
-		expect(data).toBe(expectedResolution);
-		expect(member.send).lastCalledWith(
-			[
-				Buffer.from(JSON.stringify(Session.__getMockData(), null, '\t')),
-				'export.JSON',
-				'Data export finished',
-			]
-		);
+		expect(data).toEqual([expectedResolution]);
+		expect(member.send).lastCalledWith({
+			files: [{
+				attachment: Buffer.from(JSON.stringify(Session.__getMockData(), null, '\t')),
+				name: 'export.JSON',
+			}],
+			content: 'Data export finished',
+		});
 	});
 
 	test('resolves to insufficient permissions message for non administrators and does not send a file', async () => {
@@ -52,7 +52,7 @@ describe('Command exportJSON', () => {
 
 		expect.assertions(2);
 		const data = await exportJSON([], context);
-		expect(data).toBe(expectedResolution);
+		expect(data).toEqual([expectedResolution]);
 		expect(member.send).not.toBeCalled();
 	});
 
@@ -61,7 +61,9 @@ describe('Command exportJSON', () => {
 		member.send.mockImplementationOnce(() => erroringPromise);
 
 		expect.assertions(1);
-		return expect(exportJSON([], context)).resolves.toBe(expectedResolution);
+		return expect(exportJSON([], context))
+			.resolves
+			.toEqual([expectedResolution]);
 	});
 
 	test('resolves to error msg on db error', () => {
@@ -69,6 +71,8 @@ describe('Command exportJSON', () => {
 		Session.allSessionsForGuild.mockImplementationOnce(() => erroringPromise);
 
 		expect.assertions(1);
-		return expect(exportJSON([], context)).resolves.toBe(expectedResolution);
+		return expect(exportJSON([], context))
+			.resolves
+			.toEqual([expectedResolution]);
 	});
 });

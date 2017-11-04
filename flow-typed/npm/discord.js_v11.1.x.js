@@ -1284,7 +1284,7 @@ declare module 'discord.js' {
     time?: number
   };
 
-  declare type ColorResolvable =
+  declare export type ColorResolvable =
     | 'DEFAULT'
     | 'AQUA'
     | 'GREEN'

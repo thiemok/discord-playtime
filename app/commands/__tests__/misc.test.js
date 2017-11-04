@@ -18,7 +18,9 @@ test('The help command resolves correctly', () => {
 		+ '!testUserStats <username>: *Displays detailed statistics about the given user*\n'
 		+ '!testGameStats <game>: *Displays detailed statistics about the given game*\n'
 		+ '!testExportJSON: *Exports collected data in JSON format*';
-	return expect(help([], testContext)).resolves.toBe(expectedMessage);
+	return expect(help([], testContext))
+		.resolves
+		.toEqual([expectedMessage]);
 });
 
 /**
@@ -26,5 +28,7 @@ test('The help command resolves correctly', () => {
  */
 test('The unknown command resolves correctly', () => {
 	const expectedMessage = '`I do not know that command! Please use !testHelp to list available commands.`';
-	return expect(unknownCmd([], testContext)).resolves.toBe(expectedMessage);
+	return expect(unknownCmd([], testContext))
+		.resolves
+		.toEqual([expectedMessage]);
 });
