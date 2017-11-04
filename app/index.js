@@ -1,102 +1,145 @@
-const Discord = require("discord.js");
-const bot = new Discord.Client({'fetchAllMembers': true, 'disabledEvents': ['TYPING_START']});
-const fs = require('fs');
+// @flow
+import * as Discord from 'discord.js';
+import Updater from './updater';
+import handleCommand from 'commands';
+import HealthcheckEndpoint from './healthcheckEndpoint';
+import logging from 'util/log';
+import mongoose from 'mongoose';
 
-const DBConnector = require("./database.js");
-const Updater = require("./updater.js");
-const handleCommand = require("./commands.js");
+const logger = logging('playtime:main');
 
-var config;
-var db;
-var dbUpdater;
-var requiredPermissions = ['SEND_MESSAGES'];
+export type Config = {
+	token: string,
+	dbUrl: string,
+	commandPrefix: string,
+	healthcheck: boolean,
+	healthcheckPort: number,
+};
 
-function getConfig() {
-    try {
-        let data = fs.readFileSync('./config.json');
-        config = JSON.parse(data);
-        //Set mashape api key for igdb game scraping
-        global.mashapeKey = config.mashapeKey;
-    } catch (err) {
-        //Reading config failed using ENV
-        config = {};
-        config['token'] = process.env.DISCORD_TOKEN;
-        config['dbUrl'] = process.env.MONGO_URL;
-        config['commandPrefix'] = process.env.COMMAND_PREFIX;
-    }
-}
+const client = new Discord.Client(
+	{
+		fetchAllMembers: true,
+		disabledEvents: ['TYPING_START'],
+	}
+);
 
-function setup() {
-    db = new DBConnector(config.dbUrl);
-    dbUpdater = new Updater(bot, db);
-}
-
-//Message Handling
-bot.on('message', msg => {
-  if (msg.content.startsWith(config.commandPrefix)) {
-    handleCommand(msg, bot, db, config);
-  }
+const config = getConfig();
+mongoose.Promise = global.Promise;
+mongoose.connect(config.dbUrl, {
+	useMongoClient: true,
+	socketTimeoutMS: 0,
+	keepAlive: true,
+	reconnectTries: 30,
 });
 
-bot.on('disconnect', (event) => {
-    dbUpdater.stop();
-    console.log('disconnected');
-    console.log(event.reason);
+const dbUpdater = new Updater(client);
+const requiredPermissions = ['SEND_MESSAGES'];
+
+// Healthcheck endpoint, only run in docker environments or with enabled healthchecks
+if (config.healthcheck) {
+	const healthcheckEndpoint = new HealthcheckEndpoint(client);
+	healthcheckEndpoint.listen(config.healthcheckPort);
+}
+
+
+function getConfig(): Config {
+	let cfg: Config;
+
+	try {
+		// This is hopefully replaced with a unified config method SOON(tm).
+		// $FlowIssue Yes this may fail flow, thats why its wrapped in error handling
+		cfg = require('../config.json');
+		// Set mashape api key for igdb game scraping
+		global.mashapeKey = cfg.mashapeKey;
+	} catch (err) {
+		// Reading config failed using ENV
+		const {
+			DISCORD_TOKEN,
+			MONGO_URL,
+			COMMAND_PREFIX,
+			HEALTHCHECK,
+			HEALTHCHECK_PORT,
+		} = process.env;
+		if (DISCORD_TOKEN && MONGO_URL) {
+			cfg = {
+				token: DISCORD_TOKEN,
+				dbUrl: MONGO_URL,
+				commandPrefix: (COMMAND_PREFIX || '!gt'),
+				healthcheck: (HEALTHCHECK != null && HEALTHCHECK.toLowerCase === 'true'),
+				healthcheckPort: (parseInt(HEALTHCHECK_PORT) || 3000),
+			};
+		} else {
+			throw new Error('Failed to load required configuration options');
+		}
+	}
+
+	return cfg;
+}
+
+// Message Handling
+client.on('message', (msg) => {
+	if (msg.content.startsWith(config.commandPrefix)) {
+		handleCommand(msg, client, config);
+	}
 });
 
-bot.on('reconnecting', () => {
-    console.log('reconnecting');
+client.on('disconnect', (event) => {
+	dbUpdater.stop();
+	logger.debug('disconnected\n%s', event.reason);
+});
+
+client.on('reconnecting', () => {
+	logger.debug('reconnecting');
 });
 
 try {
 
-    getConfig();
+	client.prependOnceListener('ready', () => {
+		client.generateInvite(requiredPermissions)
+			.then((link) => {
+			/* eslint-disable no-console */
+				console.log('Add me to your server using this link:');
+				console.log(link);
+			/* eslint-enable no-console */
+			})
+			.catch(err => logger.error(err));
+	});
 
-    bot.prependOnceListener('ready', () => {
-        setup();
-        var invitePromise = bot.generateInvite(requiredPermissions);
-        invitePromise.then((link) => {
-            console.log('Add me to your server using this link:');
-            console.log(link);
-        });
-    });
+	client.on('ready', () => {
+		logger.debug(`Logged in as ${client.user.username}!`);
 
-    bot.on('ready', () => {
-        console.log(`Logged in as ${bot.user.username}!`);
+		// Set presence
+		client.user.setPresence({ game: { name: 'Big Brother', type: 0 } });
 
-        //Set presence
-        let presence = bot.user.presence;
-        presence.game = { name: "Big Brother", url: null};
-        bot.user.setPresence(presence);
+		// Start updating now
+		dbUpdater.start();
+	});
 
-        //Start updating now
-        dbUpdater.start();
-    });
-
-    bot.login(config.token);
+	client.login(config.token);
+} catch (err) {
+	/* eslint-disable no-console */
+	console.error(err);
+	/* eslint-enable no-console */
 }
-catch (err) {
-    console.log(err);
-}
-
+/* eslint-disable no-console */
 function gracefulExit() {
-    console.log('(⌒ー⌒)ﾉ');
+	logger.debug('(⌒ー⌒)ﾉ');
 
-    dbUpdater.stop(() => {
-        bot.destroy();
-        process.exit();
-    });
-};
+	dbUpdater.stop()
+		.then(() => {
+			client.destroy();
+			mongoose.connection.close();
+			process.exit();
+		});
+}
 
 function uncaughtException(err) {
-    //We can't close sessions here since it async
-    console.log('(╯°□°）╯︵ ┻━┻');
-    //Log error
-    console.log(err);
-    console.log(err.stack);
-    //Logout
-    bot.destroy();
-};
+	// We can't close sessions here since it async
+	logger.error('(╯°□°）╯︵ ┻━┻\n%s\n%s', err, err.stack);
+	// Logout
+	client.destroy();
+}
+/* eslint-enable no-console */
 
-process.on('SIGINT', gracefulExit).on('SIGTERM', gracefulExit)
+process.on('SIGINT', gracefulExit).on('SIGTERM', gracefulExit);
 process.on('uncaughtException', uncaughtException);

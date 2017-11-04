@@ -2,5 +2,7 @@
 	"token": "discord_auth_token",
 	"dbUrl": "mongodb://localhost/db",
 	"commandPrefix": "!gt",
-	"mashapeKey": "Your mashape api key for igdb access"
+	"mashapeKey": "Your mashape api key for igdb access",
+	"healthcheck": true,
+	"healthcheckPort": 3000
 }

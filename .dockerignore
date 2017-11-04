@@ -6,6 +6,8 @@
 node_modules
 .flowconfig
 .eslint*
+build
+coverage
 
 # Misc
 README.md
@@ -13,3 +15,5 @@ LICENSE.md
 Makefile
 .editorconfig
 .travis.yml
+config.json
+config.json.default

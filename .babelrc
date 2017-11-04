@@ -1,16 +1,10 @@
 {
-	"presets": ["es2015", "stage-0"],
+	"presets": ["es2015", "es2017", "stage-0", "flow"],
 	"plugins": [
 		"add-module-exports",
 		"transform-runtime",
-		["babel-plugin-module-alias", [
-			{ "src": "./lib/tools", "expose": "tools" },
-			{ "src": "./constants", "expose": "constants" }
-		],
-		"flow-runtime", {
-			"assert": true,
-			"annotate": true
-			}
-		]
+		["module-resolver", {
+			"root": ["./app"]
+		}]
 	]
 }

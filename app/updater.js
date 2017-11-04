@@ -1,134 +1,133 @@
-const parallel = require('async/parallel');
+// @flow
+import logging from 'util/log';
+import type { GuildMember, Client } from 'discord.js';
+import Session from 'models/session';
 
-class Session {
-    constructor(_game, _member, _servers) {
-        this.game = _game;
-        this.startDate = new Date();
-        this.member = _member;
-        this.servers = _servers;
-    }
-};
+const logger = logging('playtime:updater');
+
+export class ActiveSession {
+
+	game: string
+	startDate: Date
+	member: GuildMember
+	servers: Array<string>
+
+	constructor(game: string, member: GuildMember, servers: Array<string>) {
+		this.game = game;
+		this.startDate = new Date();
+		this.member = member;
+		this.servers = servers;
+	}
+}
 
 class Updater {
-    constructor(_bot, _db) {
-	    this.db = _db;
-	    this.bot = _bot;
-        this.activeSessions = new Map();
 
-        //Handle updated presences
-        this.presenceUpdated = (function(oldMember, newMember) {
-            this.closeSession(newMember);
-            this.openSession(newMember);
-        }).bind(this);
-    }
+	client: Client
+	activeSessions: Map<string, Session>
 
-    //Checks if the given member needs tracking
-    needsTracking(member) {
-        let needsTracking = true;
-        //Check if member is not playing
-        if (member.presence.game == null) {
-            needsTracking = false;
+	constructor(client: Client) {
+		this.client = client;
+		this.activeSessions = new Map();
+	}
 
-        //Check if member is already tracked
-        } else if (this.activeSessions.has(member.id)) {
-            //Check if game is equal to open session
-            if (this.activeSessions.get(member.id).game == member.presence.game.name) {
-                needsTracking = false;
-            }
-    
-        //Check if member is afk
-        } else if (member.presence.status == 'idle') {
-            needsTracking = false;
-    
-        //Check if member is a bot
-        } else if (member.user.bot) {
-            needsTracking = false;
-        }
-        return needsTracking;
-    }
+	// Handle updated presences
+	presenceUpdated(oldMember: GuildMember, newMember: GuildMember) {
+		this.closeSession(newMember);
+		this.openSession(newMember);
+	}
 
-    //Checks if the session of the given member needs closing
-    needsClosing(member) {
-        let needsClosing = false;
+	// Checks if the given member needs tracking
+	needsTracking(member: GuildMember): boolean {
+		if (member.presence.game == null) return false;
+		if (member.presence.status === 'idle') return false;
+		if (member.user.bot) return false;
 
-        //Check if member does have an open session
-        if (this.activeSessions.has(member.id)) {
-            
-            //Check if member has gone afk
-            if (member.presence.status == 'idle') {
-                needsClosing = true;
+		const openSession = this.activeSessions.get(member.id);
+		if (openSession != null && openSession.game === member.presence.game.name) return false;
 
-            //Check if member has gone offline 
-            } else if (member.presence.status == 'offline') {
-                needsClosing = true;
+		return true;
+	}
 
-            //Check if member has stopped playing    
-            }  else if (member.presence.game == null) {
-                needsClosing = true;
+	// Checks if the session of the given member needs closing
+	needsClosing(member: GuildMember): boolean {
+		if (!this.activeSessions.has(member.id)) return false;
+		if (member.presence.status === 'idle') return true;
+		if (member.presence.status === 'offline') return true;
+		if (member.presence.game == null) return true;
 
-            //Check if member changed game
-            } else if (this.activeSessions.get(member.id).game != member.presence.game.name) {
-                needsClosing = true;
-            }
-        }
+		const openSession = this.activeSessions.get(member.id);
+		if (openSession != null && openSession.game !== member.presence.game.name) return true;
 
-        return needsClosing;
-    }
+		return false;
+	}
 
-    //Start a session for the given member of needed
-    openSession(member) {
-        //Check if member needs tracking
-        if (this.needsTracking(member)) {
-            let servers = new Array();
-            for (let [sid, server] of this.bot.guilds) {
-                if (server.available) {
-                    if(server.members.has(member.id)) {
-                        servers.push(sid);
-                    }
-                }
-            }
-            let session = new Session(member.presence.game.name, member, servers);
-            this.activeSessions.set(member.id, session);
-        }
-    }
+	// Start a session for the given member of needed
+	openSession(member: GuildMember) {
+		// Check if member needs tracking
+		if (this.needsTracking(member)) {
+			logger.debug('Opening session for %s', member.displayName);
+			const servers = [];
+			this.client.guilds.forEach((server, sid) => {
+				if (server.available) {
+					if (server.members.has(member.id)) {
+						servers.push(sid);
+					}
+				}
+			});
+			const session = new ActiveSession(member.presence.game.name, member, servers);
+			this.activeSessions.set(member.id, session);
+		}
+	}
 
-    //Closes, if needed or forced, the session of the given member and writes it to the db
-    closeSession(member, callback, force = false) {
-        //Check if is forced or needs closing
-        if (force || this.needsClosing(member)) {
-            //Write session to db
-            this.db.insertSession(this.activeSessions.get(member.id), callback);
+	// Closes, if needed or forced, the session of the given member and writes it to the db
+	async closeSession(member: GuildMember, force: boolean = false): Promise<> {
+		// Check if is forced or needs closing
+		if (force || this.needsClosing(member)) {
+			logger.debug('Closing session for %s', member.displayName);
+			// Write session to db
+			const openSession = this.activeSessions.get(member.id);
+			if (openSession != null) {
 
-            this.activeSessions.delete(member.id);
-        }
-    }
+				this.activeSessions.delete(member.id);
 
-    //Start tracking users presences
-    start() {
-        //Start Sessions for already connected and playing users
-        for (let guild of this.bot.guilds.values()) {
-            for (let member of guild.members.values()) {
-                this.openSession(member);
-            }
-        }
+				return Session.create({
+					uid: openSession.member.id,
+					game: openSession.game,
+					duration: Date.now() - openSession.startDate.getTime(),
+					ended: new Date(),
+					guilds: openSession.member.client.guilds.keyArray(),
+				});
+			}
+		}
+		return Promise.resolve();
+	}
 
-        //Act on Users changeing state
-        this.bot.on('presenceUpdate', this.presenceUpdated);
-    }
+	// Start tracking users presences
+	start() {
+		logger.debug('Starting tracking');
+		// Start Sessions for already connected and playing users
+		this.client.guilds.forEach((guild) => {
+			guild.members.forEach((member) => {
+				this.openSession(member);
+			});
+		});
 
-    //Stop tracking user presences
-    stop(_callback) {
-        //Remove event listener
-        this.bot.removeListener('presenceUpdated', this.presenceUpdated);
-        //Close all open Sessions
-        let tasks = new Array();
-        for (let session of this.activeSessions.values()) {
-            tasks.push((callback) =>{
-                this.closeSession(session.member, callback,true);
-            });
-        }
-        parallel(tasks, _callback);
-    }
-};
+		// Act on Users changeing state
+		this.client.on('presenceUpdate', this.presenceUpdated.bind(this));
+	}
 
-module.exports = Updater;
+	// Stop tracking user presences
+	async stop() {
+		logger.debug('Stopping tracking');
+		// Remove event listener
+		this.client.removeListener('presenceUpdated', this.presenceUpdated);
+		// Close all open Sessions
+		const tasks = [];
+		this.activeSessions.forEach((session) => {
+			tasks.push(this.closeSession(session.member, true));
+		});
+		return Promise.all(tasks);
+	}
+}
+
+export default Updater;

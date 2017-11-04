@@ -1,8 +1,8 @@
 module.exports = {
-	"extends": "airbnb",
+	"extends": "airbnb-base",
 	"parser": "babel-eslint",
 	"parserOptions": {
-		"ecmaVersion": 6,
+		"ecmaVersion": 8,
 		"sourceType": "module",
 		"ecmaFeatures": {
 			"blockBindings": true
@@ -14,7 +14,8 @@ module.exports = {
 	],
 	"env": {
 		"node": true,
-		"mocha": true,
+		"jest": true,
+		"jasmine": true,
 		"es6": true
 	},
 	"rules": {
@@ -28,7 +29,7 @@ module.exports = {
 		"consistent-return": 1,
 		"flowtype/boolean-style": [2, "boolean"],
     "flowtype/define-flow-type": 1,
-    "flowtype/delimiter-dangle": [2, "never"],
+    "flowtype/delimiter-dangle": [2, "always-multiline"],
     "flowtype/generic-spacing": [2, "never"],
     "flowtype/no-primitive-constructor-types": 2,
     "flowtype/no-weak-types": 1,
@@ -91,7 +92,11 @@ module.exports = {
 		"prefer-template": 0,
 		"quotes": [1, "single", "avoid-escape"],
 		"radix": 0,
-		"space-before-function-paren": [1, "never"],
+		"space-before-function-paren": [1, {
+			"asyncArrow": "always",
+			"anonymous": "never",
+      "named": "never"
+		}],
 		"import/no-extraneous-dependencies": 0,
 		"import/extensions": 0,
 		"import/first": 0,
@@ -100,6 +105,9 @@ module.exports = {
 				"tools.*",
 				"constants.*",
 				"app.*",
+				"util.*",
+				"models.*",
+				"commands"
 			]
 		}],
 		"import/extensions": 0,
