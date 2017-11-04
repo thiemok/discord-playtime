@@ -1,6 +1,6 @@
 {
   "name": "discord_playtime",
-  "version": "0.1.1",
+  "version": "1.0.0",
   "description": "Discord Bot that collects playtime statistics",
   "main": "index.js",
   "scripts": {
