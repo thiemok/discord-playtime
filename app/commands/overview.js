@@ -51,7 +51,7 @@ const overview = (argv: Array<string>, context: CommandContext): CommandResult =
 
 						let gamesMsg: string = '';
 						gameTitles.forEach((title, index) => {
-							gamesMsg += `${title._id}: ${buildTimeString(topGames[index].total)}\n`;
+							gamesMsg += `${title}: ${buildTimeString(topGames[index].total)}\n`;
 						});
 
 						// Build the final embed
