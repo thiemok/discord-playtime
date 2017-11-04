@@ -10,7 +10,7 @@ import MockDate from 'mockdate';
 jest.mock('../../models/session');
 jest.mock('../../util/stringHelpers');
 
-const mockTopGames = [{ _id: 'Game1', total: 0 }, { _id: 'Game2', total: 0 }];
+const mockTopGames = [{ _id: 'Game1', total: 10 }, { _id: 'Game2', total: 10 }];
 Session.__setMockData({
 	topPlayers: [
 		{ _id: 1, total: 5 },
@@ -65,8 +65,8 @@ describe('Command overview', () => {
 				},
 				{
 					name: 'Most popular games',
-					value: `${buildRichGameString(mockTopGames[0]._id)}: ${buildTimeString(mockTopGames[0].total)}\n`
-									+ `${buildRichGameString(mockTopGames[1]._id)}: ${buildTimeString(mockTopGames[1].total)}`,
+					value: `${buildRichGameString(mockTopGames[0])}: ${buildTimeString(mockTopGames[0].total)}\n`
+									+ `${buildRichGameString(mockTopGames[1])}: ${buildTimeString(mockTopGames[1].total)}`,
 				},
 			],
 		})).map(embed => ({ embed }));
